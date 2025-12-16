@@ -65,6 +65,9 @@ COPY docker/supervisord.conf /etc/supervisord.conf
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
+# Define volumes for persistent data
+VOLUME ["/app/database", "/app/storage"]
+
 # Expose port
 EXPOSE 80
 
