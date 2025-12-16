@@ -25,7 +25,10 @@ export function NavMain({
             </SidebarGroupLabel>
             <SidebarMenu>
                 {items.map((item) => {
-                    const isActive = page.url.startsWith(resolveUrl(item.href));
+                    const href = resolveUrl(item.href);
+                    const currentPath = page.url.split('?')[0]; // Remove query string
+                    // Exact match only (prevents parent routes from matching child routes)
+                    const isActive = currentPath === href;
                     const isDisabled = item.href === '#';
 
                     return (
