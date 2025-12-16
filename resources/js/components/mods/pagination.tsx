@@ -12,8 +12,27 @@ interface PaginationProps<T> {
     data: Paginated<T>;
 }
 
+// Convert absolute URLs to relative paths to avoid HTTP/HTTPS issues
+function toRelativeUrl(url: string | null): string | null {
+    if (!url) return null;
+    try {
+        const urlObj = new URL(url);
+        return urlObj.pathname + urlObj.search;
+    } catch {
+        return url; // Already a relative URL
+    }
+}
+
 export function Pagination<T>({ data }: PaginationProps<T>) {
     const { meta } = data;
+
+    // Convert all pagination links to relative URLs
+    const links = {
+        first: toRelativeUrl(data.links.first),
+        last: toRelativeUrl(data.links.last),
+        prev: toRelativeUrl(data.links.prev),
+        next: toRelativeUrl(data.links.next),
+    };
 
     if (meta.last_page <= 1) {
         return null;
@@ -37,13 +56,13 @@ export function Pagination<T>({ data }: PaginationProps<T>) {
                     variant="outline"
                     size="icon"
                     className="size-9"
-                    disabled={!data.links.prev || meta.current_page === 1}
-                    asChild={!!data.links.first && meta.current_page !== 1}
+                    disabled={!links.prev || meta.current_page === 1}
+                    asChild={!!links.first && meta.current_page !== 1}
                     title="First page"
                 >
-                    {data.links.first && meta.current_page !== 1 ? (
+                    {links.first && meta.current_page !== 1 ? (
                         <Link
-                            href={data.links.first}
+                            href={links.first}
                             preserveScroll
                             preserveState
                         >
@@ -60,13 +79,13 @@ export function Pagination<T>({ data }: PaginationProps<T>) {
                     variant="outline"
                     size="icon"
                     className="size-9"
-                    disabled={!data.links.prev}
-                    asChild={!!data.links.prev}
+                    disabled={!links.prev}
+                    asChild={!!links.prev}
                     title="Previous page"
                 >
-                    {data.links.prev ? (
+                    {links.prev ? (
                         <Link
-                            href={data.links.prev}
+                            href={links.prev}
                             preserveScroll
                             preserveState
                         >
@@ -85,7 +104,8 @@ export function Pagination<T>({ data }: PaginationProps<T>) {
                             return null;
                         }
 
-                        if (link.url) {
+                        const relativeUrl = toRelativeUrl(link.url);
+                        if (relativeUrl) {
                             return (
                                 <Button
                                     key={link.label}
@@ -97,7 +117,7 @@ export function Pagination<T>({ data }: PaginationProps<T>) {
                                     asChild
                                 >
                                     <Link
-                                        href={link.url}
+                                        href={relativeUrl}
                                         preserveScroll
                                         preserveState
                                     >
@@ -128,13 +148,13 @@ export function Pagination<T>({ data }: PaginationProps<T>) {
                     variant="outline"
                     size="icon"
                     className="size-9"
-                    disabled={!data.links.next}
-                    asChild={!!data.links.next}
+                    disabled={!links.next}
+                    asChild={!!links.next}
                     title="Next page"
                 >
-                    {data.links.next ? (
+                    {links.next ? (
                         <Link
-                            href={data.links.next}
+                            href={links.next}
                             preserveScroll
                             preserveState
                         >
@@ -152,17 +172,17 @@ export function Pagination<T>({ data }: PaginationProps<T>) {
                     size="icon"
                     className="size-9"
                     disabled={
-                        !data.links.next || meta.current_page === meta.last_page
+                        !links.next || meta.current_page === meta.last_page
                     }
                     asChild={
-                        !!data.links.last &&
+                        !!links.last &&
                         meta.current_page !== meta.last_page
                     }
                     title="Last page"
                 >
-                    {data.links.last && meta.current_page !== meta.last_page ? (
+                    {links.last && meta.current_page !== meta.last_page ? (
                         <Link
-                            href={data.links.last}
+                            href={links.last}
                             preserveScroll
                             preserveState
                         >
