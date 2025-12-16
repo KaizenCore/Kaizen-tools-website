@@ -57,7 +57,8 @@ wait_for_db
 # Run migrations only if SKIP_MIGRATIONS is not set
 if [ -z "$SKIP_MIGRATIONS" ]; then
     echo "Running database migrations..."
-    php artisan migrate --force --no-interaction --isolated
+    # Don't use --isolated flag as it requires cache_locks table which may not exist yet
+    php artisan migrate --force --no-interaction
 else
     echo "Skipping migrations (SKIP_MIGRATIONS is set)"
 fi
