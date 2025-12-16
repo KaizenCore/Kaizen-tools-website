@@ -36,7 +36,10 @@ RUN apk add --no-cache php83 php83-phar php83-mbstring php83-openssl php83-token
 
 # Copy package files and install dependencies
 COPY package.json package-lock.json ./
-RUN npm ci --no-audit --prefer-offline
+
+# Cache bust arg - change this or pass --build-arg CACHEBUST=$(date +%s) to force rebuild
+ARG CACHEBUST=1
+RUN npm ci --no-audit
 
 # Copy application files needed for build
 COPY . .
