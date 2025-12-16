@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Enums\ModPlatform;
 use App\Models\Mod;
+use App\Models\ModCategory;
 use App\Models\ModSource;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -70,6 +71,78 @@ class SyncSingleMod implements ShouldQueue
                 'total_downloads' => $mod->sources()->sum('downloads'),
                 'last_synced_at' => now(),
             ]);
+        }
+
+        // Sync categories
+        $this->syncCategories($mod, $data);
+    }
+
+    /**
+     * Sync categories for the mod based on API data.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private function syncCategories(Mod $mod, array $data): void
+    {
+        $apiCategories = $data['categories'] ?? [];
+
+        if (empty($apiCategories)) {
+            return;
+        }
+
+        // Map API category names to our local category slugs
+        $categoryMapping = [
+            // Modrinth categories
+            'technology' => 'technology',
+            'tech' => 'technology',
+            'automation' => 'technology',
+            'magic' => 'magic',
+            'adventure' => 'adventure',
+            'storage' => 'storage',
+            'worldgen' => 'worldgen',
+            'world-generation' => 'worldgen',
+            'utility' => 'utility',
+            'library' => 'library',
+            'decoration' => 'decoration',
+            'food' => 'food',
+            'mobs' => 'mobs',
+            'creatures' => 'mobs',
+            'equipment' => 'equipment',
+            'armor' => 'equipment',
+            'tools' => 'equipment',
+            'weapons' => 'equipment',
+            'optimization' => 'optimization',
+            'performance' => 'optimization',
+            // CurseForge categories
+            'mc-mods' => null,
+            'modpacks' => null,
+        ];
+
+        $categoryIds = [];
+
+        foreach ($apiCategories as $apiCategory) {
+            $categoryName = is_array($apiCategory) ? ($apiCategory['name'] ?? null) : $apiCategory;
+
+            if (! $categoryName) {
+                continue;
+            }
+
+            $slug = Str::slug($categoryName);
+            $mappedSlug = $categoryMapping[$slug] ?? $slug;
+
+            if ($mappedSlug === null) {
+                continue;
+            }
+
+            $category = ModCategory::where('slug', $mappedSlug)->first();
+
+            if ($category) {
+                $categoryIds[] = $category->id;
+            }
+        }
+
+        if (! empty($categoryIds)) {
+            $mod->categories()->syncWithoutDetaching($categoryIds);
         }
     }
 
