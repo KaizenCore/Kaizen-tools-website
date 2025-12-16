@@ -19,8 +19,8 @@ FROM node:20-alpine AS node-build
 WORKDIR /app
 
 # Install PHP for Wayfinder type generation
-RUN apk add --no-cache php84 php84-phar php84-mbstring php84-openssl php84-tokenizer php84-ctype php84-session \
-    && ln -s /usr/bin/php84 /usr/bin/php
+RUN apk add --no-cache php83 php83-phar php83-mbstring php83-openssl php83-tokenizer php83-ctype php83-session php83-json \
+    && ln -sf /usr/bin/php83 /usr/bin/php
 
 # Copy package files and install dependencies
 COPY package.json package-lock.json ./
