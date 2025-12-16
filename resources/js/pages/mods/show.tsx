@@ -56,10 +56,10 @@ export default function ModShow({ mod }: Props) {
             <AppLayout
                 breadcrumbs={[
                     { title: 'Mods', href: '/mods' },
-                    { title: 'Chargement...', href: '#' },
+                    { title: 'Loading...', href: '#' },
                 ]}
             >
-                <Head title="Chargement..." />
+                <Head title="Loading..." />
                 <div className="flex min-h-[400px] items-center justify-center">
                     <Loader2 className="size-8 animate-spin text-muted-foreground" />
                 </div>
@@ -74,7 +74,7 @@ export default function ModShow({ mod }: Props) {
 
     const formatDate = (dateString: string | null) => {
         if (!dateString) return 'Unknown';
-        return new Date(dateString).toLocaleDateString('fr-FR', {
+        return new Date(dateString).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'long',
             day: 'numeric',
@@ -114,7 +114,7 @@ export default function ModShow({ mod }: Props) {
                     className="group mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-all duration-200 hover:gap-3 hover:text-foreground"
                 >
                     <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-1" />
-                    Retour aux mods
+                    Back to mods
                 </Link>
 
                 {/* Responsive Grid: Stack on mobile, 2/3 + 1/3 on desktop */}
@@ -191,7 +191,7 @@ export default function ModShow({ mod }: Props) {
                                                         }
                                                     </div>
                                                     <div className="text-xs text-muted-foreground">
-                                                        téléchargements
+                                                        downloads
                                                     </div>
                                                 </div>
                                             </div>
@@ -207,7 +207,7 @@ export default function ModShow({ mod }: Props) {
                                                             )}
                                                         </div>
                                                         <div className="text-xs text-muted-foreground">
-                                                            dernière mise à jour
+                                                            last updated
                                                         </div>
                                                     </div>
                                                 </div>
@@ -225,7 +225,7 @@ export default function ModShow({ mod }: Props) {
                                     </h2>
                                     <p className="leading-relaxed whitespace-pre-wrap text-muted-foreground">
                                         {mod.summary ||
-                                            'Aucune description disponible.'}
+                                            'No description available.'}
                                     </p>
                                 </div>
 
@@ -237,7 +237,7 @@ export default function ModShow({ mod }: Props) {
                                             <div>
                                                 <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">
                                                     <Tag className="size-5" />
-                                                    Catégories
+                                                    Categories
                                                 </h2>
                                                 <div className="flex flex-wrap gap-2">
                                                     {mod.categories.map(
@@ -272,7 +272,7 @@ export default function ModShow({ mod }: Props) {
                                 <CardHeader>
                                     <CardTitle className="flex items-center gap-2 text-base">
                                         <Box className="size-4" />
-                                        Versions Minecraft
+                                        Minecraft Versions
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
@@ -340,13 +340,13 @@ export default function ModShow({ mod }: Props) {
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-base">
                                     <TrendingUp className="size-4" />
-                                    Statistiques
+                                    Statistics
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-3">
                                 <div className="flex justify-between rounded-lg bg-muted/50 p-3">
                                     <span className="font-medium text-muted-foreground">
-                                        Total téléchargements
+                                        Total downloads
                                     </span>
                                     <span className="text-lg font-bold">
                                         {(

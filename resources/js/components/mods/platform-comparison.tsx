@@ -68,7 +68,7 @@ export function PlatformComparison({ sources }: PlatformComparisonProps) {
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     <ExternalLink className="size-5" />
-                    Télécharger depuis
+                    Download from
                 </CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
@@ -88,7 +88,7 @@ export function PlatformComparison({ sources }: PlatformComparisonProps) {
                 )}
                 {!modrinth && !curseforge && (
                     <p className="col-span-2 text-center text-sm text-muted-foreground">
-                        Aucune plateforme disponible
+                        No platforms available
                     </p>
                 )}
             </CardContent>
@@ -163,7 +163,7 @@ function PlatformCard({
                         {source.formatted_downloads}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                        téléchargements
+                        downloads
                     </div>
                 </div>
             </div>
@@ -172,7 +172,7 @@ function PlatformCard({
             {source.latest_version && (
                 <div className="mb-3">
                     <p className="mb-1 text-xs font-medium text-muted-foreground">
-                        Dernière version
+                        Latest version
                     </p>
                     <Badge variant="secondary" className="text-xs font-medium">
                         {source.latest_version}
@@ -185,7 +185,7 @@ function PlatformCard({
                 source.supported_loaders.length > 0 && (
                     <div className="mb-3">
                         <p className="mb-2 text-xs font-medium text-muted-foreground">
-                            Loaders supportés
+                            Supported loaders
                         </p>
                         <div className="flex flex-wrap gap-1.5">
                             {source.supported_loaders.map((loader) => (
@@ -209,7 +209,7 @@ function PlatformCard({
                 source.supported_versions.length > 0 && (
                     <div className="mb-4">
                         <p className="mb-2 text-xs font-medium text-muted-foreground">
-                            Versions Minecraft
+                            Minecraft versions
                         </p>
                         <div className="flex flex-wrap gap-1">
                             {source.supported_versions
@@ -239,7 +239,7 @@ function PlatformCard({
                 className={`pointer-events-none w-full ${styles.buttonBg} transition-all duration-300 group-hover:shadow-md`}
             >
                 <ExternalLink className="mr-2 size-4" />
-                Visiter {name}
+                Visit {name}
             </Button>
         </a>
     );
