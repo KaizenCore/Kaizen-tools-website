@@ -3,6 +3,12 @@ set -e
 
 echo "Starting Laravel application initialization..."
 
+# Force APP_URL to use HTTPS if not already
+if [ -n "$APP_URL" ]; then
+    export APP_URL=$(echo "$APP_URL" | sed 's|^http://|https://|')
+    echo "APP_URL set to: $APP_URL"
+fi
+
 # Function to wait for database to be ready (if using external DB)
 wait_for_db() {
     if [ -n "$DB_HOST" ] && [ "$DB_CONNECTION" != "sqlite" ]; then
