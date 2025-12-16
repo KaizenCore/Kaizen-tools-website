@@ -1,8 +1,14 @@
+# Version control
 .git
 .gitignore
+.gitattributes
+
+# Environment files
 .env
 .env.*
 !.env.example
+
+# IDE and editor files
 .claude
 .gemini
 .vscode
@@ -10,23 +16,69 @@
 .fleet
 .nova
 .zed
+.editorconfig
+*.swp
+*.swo
+*~
+
+# Dependencies (handled by build stages)
 node_modules
 vendor
+
+# Build artifacts
+public/build
+public/hot
+public/storage
+npm-debug.log
+yarn-error.log
+
+# Storage and cache directories
 storage/logs/*
 storage/framework/cache/*
 storage/framework/sessions/*
 storage/framework/views/*
+storage/app/public/*
+storage/debugbar/*
 bootstrap/cache/*
+
+# Database files
 *.sqlite
 *.sqlite-journal
+database/*.sqlite
+
+# Documentation and config files
 CLAUDE.md
 GEMINI.md
 AGENTS.md
+README.md
 boost.json
 .mcp.json
+
+# Testing
 tests
 phpunit.xml
-.editorconfig
+.phpunit.cache
+.phpunit.result.cache
+coverage
+
+# Code quality tools
 .prettierrc
 .prettierignore
 eslint.config.js
+pint.json
+phpstan.neon
+psalm.xml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker files (to prevent recursion)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.travis.yml

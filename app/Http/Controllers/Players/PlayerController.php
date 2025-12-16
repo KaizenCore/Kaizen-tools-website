@@ -22,6 +22,7 @@ class PlayerController extends Controller
     public function index(): Response
     {
         $recentPlayers = Player::query()
+            ->withCount('verifiedReports')
             ->orderBy('updated_at', 'desc')
             ->limit(12)
             ->get();

@@ -18,7 +18,7 @@ import {
     RotateCcw,
     Trash2,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -38,7 +38,7 @@ export default function BannerCreator() {
     const [selectedColor, setSelectedColor] = useState('black');
     const [copied, setCopied] = useState(false);
 
-    const addLayer = () => {
+    const addLayer = useCallback(() => {
         if (layers.length >= 6) {
             return;
         }
@@ -47,35 +47,37 @@ export default function BannerCreator() {
             ...layers,
             { pattern: selectedPattern, color: selectedColor },
         ]);
-    };
+    }, [layers, selectedPattern, selectedColor]);
 
-    const removeLayer = (index: number) => {
-        setLayers(layers.filter((_, i) => i !== index));
-    };
+    const removeLayer = useCallback((index: number) => {
+        setLayers((prevLayers) => prevLayers.filter((_, i) => i !== index));
+    }, []);
 
-    const moveLayer = (index: number, direction: 'up' | 'down') => {
-        const newLayers = [...layers];
-        const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    const moveLayer = useCallback((index: number, direction: 'up' | 'down') => {
+        setLayers((prevLayers) => {
+            const newLayers = [...prevLayers];
+            const targetIndex = direction === 'up' ? index - 1 : index + 1;
 
-        if (targetIndex < 0 || targetIndex >= layers.length) {
-            return;
-        }
+            if (targetIndex < 0 || targetIndex >= newLayers.length) {
+                return prevLayers;
+            }
 
-        [newLayers[index], newLayers[targetIndex]] = [
-            newLayers[targetIndex],
-            newLayers[index],
-        ];
-        setLayers(newLayers);
-    };
+            [newLayers[index], newLayers[targetIndex]] = [
+                newLayers[targetIndex],
+                newLayers[index],
+            ];
+            return newLayers;
+        });
+    }, []);
 
-    const reset = () => {
+    const reset = useCallback(() => {
         setBaseColor('white');
         setLayers([]);
         setSelectedPattern('stripe_bottom');
         setSelectedColor('black');
-    };
+    }, []);
 
-    const generateCommand = () => {
+    const generateCommand = useCallback(() => {
         let nbtData = `{BlockEntityTag:{Base:${minecraftColors.findIndex((c) => c.id === baseColor)}`;
 
         if (layers.length > 0) {
@@ -93,22 +95,27 @@ export default function BannerCreator() {
         nbtData += '}}';
 
         return `/give @p minecraft:${baseColor}_banner${nbtData}`;
-    };
+    }, [baseColor, layers]);
 
-    const copyCommand = async () => {
+    const copyCommand = useCallback(async () => {
         const command = generateCommand();
         await navigator.clipboard.writeText(command);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
-    };
+    }, [generateCommand]);
 
-    const getColorByName = (colorId: string) => {
+    const getColorByName = useCallback((colorId: string) => {
         return minecraftColors.find((c) => c.id === colorId);
-    };
+    }, []);
 
-    const getPatternByName = (patternId: string) => {
+    const getPatternByName = useCallback((patternId: string) => {
         return bannerPatterns.find((p) => p.id === patternId);
-    };
+    }, []);
+
+    const filteredPatterns = useMemo(
+        () => bannerPatterns.filter((p) => p.id !== 'base'),
+        [],
+    );
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -170,9 +177,7 @@ export default function BannerCreator() {
                                         Pattern
                                     </h3>
                                     <div className="grid max-h-64 grid-cols-4 gap-2 overflow-y-auto rounded-lg border p-2 md:grid-cols-6">
-                                        {bannerPatterns
-                                            .filter((p) => p.id !== 'base')
-                                            .map((pattern) => (
+                                        {filteredPatterns.map((pattern) => (
                                                 <button
                                                     key={pattern.id}
                                                     type="button"

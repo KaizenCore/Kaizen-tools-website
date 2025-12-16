@@ -33,6 +33,7 @@ import { dashboard } from '@/routes';
 import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-react';
+import { useMemo } from 'react';
 import AppLogo from './app-logo';
 import AppLogoIcon from './app-logo-icon';
 
@@ -68,6 +69,12 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
     const page = usePage<SharedData>();
     const { auth } = page.props;
     const getInitials = useInitials();
+
+    const userInitials = useMemo(
+        () => getInitials(auth.user.name),
+        [auth.user.name, getInitials],
+    );
+
     return (
         <>
             <div className="border-b border-sidebar-border/80">
@@ -238,7 +245,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                             alt={auth.user.name}
                                         />
                                         <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
-                                            {getInitials(auth.user.name)}
+                                            {userInitials}
                                         </AvatarFallback>
                                     </Avatar>
                                 </Button>

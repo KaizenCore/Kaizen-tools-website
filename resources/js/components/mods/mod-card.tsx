@@ -3,12 +3,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import type { Mod } from '@/types/mods';
 import { Link } from '@inertiajs/react';
 import { Download, Tag } from 'lucide-react';
+import { memo } from 'react';
 
 interface ModCardProps {
     mod: Mod;
 }
 
-export function ModCard({ mod }: ModCardProps) {
+export const ModCard = memo(function ModCard({ mod }: ModCardProps) {
     return (
         <Link href={`/mods/${mod.slug}`} className="group">
             <Card className="h-full transition-all duration-200 hover:scale-[1.02] hover:shadow-lg dark:hover:shadow-primary/5">
@@ -93,4 +94,4 @@ export function ModCard({ mod }: ModCardProps) {
             </Card>
         </Link>
     );
-}
+});

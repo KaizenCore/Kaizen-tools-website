@@ -23,7 +23,10 @@ class TrustScoreService
             return $player->trust_score;
         }
 
-        $verifiedReports = $player->verifiedReports()->get();
+        // Use loaded relationship if available, otherwise query
+        $verifiedReports = $player->relationLoaded('verifiedReports')
+            ? $player->verifiedReports
+            : $player->verifiedReports()->get();
 
         if ($verifiedReports->isEmpty()) {
             return self::BASE_SCORE;
@@ -114,6 +117,7 @@ class TrustScoreService
 
         Player::query()
             ->where('admin_override', false)
+            ->with('verifiedReports')
             ->chunk(100, function ($players) use (&$count) {
                 foreach ($players as $player) {
                     $this->updateTrustLevel($player);

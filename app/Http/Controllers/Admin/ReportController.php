@@ -108,21 +108,26 @@ class ReportController extends Controller
             'status' => ['required', 'string', 'in:verified,rejected,resolved'],
         ]);
 
-        $reports = PlayerReport::whereIn('id', $request->input('report_ids'))->get();
-        $playerIds = [];
+        $reportIds = $request->input('report_ids');
 
-        foreach ($reports as $report) {
-            $report->update([
-                'status' => $request->input('status'),
-                'reviewed_by' => $request->user()->id,
-                'reviewed_at' => now(),
-            ]);
-            $playerIds[] = $report->player_id;
-        }
+        // Batch update all reports at once
+        $updatedCount = PlayerReport::whereIn('id', $reportIds)->update([
+            'status' => $request->input('status'),
+            'reviewed_by' => $request->user()->id,
+            'reviewed_at' => now(),
+        ]);
 
         // Recalculate trust scores for affected players if verified
         if ($request->input('status') === 'verified') {
-            $players = \App\Models\Player::whereIn('id', array_unique($playerIds))->get();
+            $playerIds = PlayerReport::whereIn('id', $reportIds)
+                ->distinct()
+                ->pluck('player_id')
+                ->unique();
+
+            $players = \App\Models\Player::whereIn('id', $playerIds)
+                ->with('verifiedReports')
+                ->get();
+
             foreach ($players as $player) {
                 $this->trustScoreService->updateTrustLevel($player);
             }
@@ -130,7 +135,7 @@ class ReportController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => count($reports).' reports reviewed successfully.',
+            'message' => $updatedCount.' reports reviewed successfully.',
         ]);
     }
 }

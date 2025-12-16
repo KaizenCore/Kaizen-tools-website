@@ -90,6 +90,12 @@ class SyncSingleMod implements ShouldQueue
             return;
         }
 
+        // Cache categories to avoid N+1 queries
+        static $categoriesBySlug = null;
+        if ($categoriesBySlug === null) {
+            $categoriesBySlug = ModCategory::all()->keyBy('slug');
+        }
+
         // Map API category names to our local category slugs
         $categoryMapping = [
             // Modrinth categories
@@ -134,10 +140,8 @@ class SyncSingleMod implements ShouldQueue
                 continue;
             }
 
-            $category = ModCategory::where('slug', $mappedSlug)->first();
-
-            if ($category) {
-                $categoryIds[] = $category->id;
+            if (isset($categoriesBySlug[$mappedSlug])) {
+                $categoryIds[] = $categoriesBySlug[$mappedSlug]->id;
             }
         }
 

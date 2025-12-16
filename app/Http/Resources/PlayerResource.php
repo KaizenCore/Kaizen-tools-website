@@ -21,7 +21,7 @@ class PlayerResource extends JsonResource
             'username' => $this->username,
             'trust_level' => $trustLevel->value,
             'trust_level_label' => $trustLevel->label(),
-            'has_reports' => $this->verifiedReports()->exists(),
+            'has_reports' => $this->whenCounted('verifiedReports', fn () => $this->verified_reports_count > 0, false),
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
         ];

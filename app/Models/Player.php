@@ -33,16 +33,25 @@ class Player extends Model
         ];
     }
 
+    /**
+     * @return HasMany<PlayerReport, $this>
+     */
     public function reports(): HasMany
     {
         return $this->hasMany(PlayerReport::class);
     }
 
+    /**
+     * @return HasMany<PlayerReport, $this>
+     */
     public function verifiedReports(): HasMany
     {
         return $this->hasMany(PlayerReport::class)->where('status', 'verified');
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function adminOverrideBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'admin_override_by');

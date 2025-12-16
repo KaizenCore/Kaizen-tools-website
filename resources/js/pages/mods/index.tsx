@@ -8,7 +8,7 @@ import type { BreadcrumbItem } from '@/types';
 import type { Category, Mod, ModFilters, Paginated } from '@/types/mods';
 import { Head, router } from '@inertiajs/react';
 import { Package, Search, Zap } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 interface Props {
     mods: Paginated<Mod>;
@@ -46,7 +46,7 @@ export default function ModsIndex({
         };
     }, []);
 
-    const handleFilterChange = (newFilters: Partial<ModFilters>) => {
+    const handleFilterChange = useCallback((newFilters: Partial<ModFilters>) => {
         router.get(
             '/mods',
             { ...filters, ...newFilters },
@@ -55,7 +55,7 @@ export default function ModsIndex({
                 preserveScroll: true,
             },
         );
-    };
+    }, [filters]);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>

@@ -23,7 +23,7 @@ import type { BreadcrumbItem } from '@/types';
 import type { AdminPlayer, Pagination } from '@/types/admin';
 import { Head, Link, router } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight, Search, Shield } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 interface Props {
     players: AdminPlayer[];
@@ -46,16 +46,16 @@ export default function AdminPlayersIndex({
 }: Props) {
     const [search, setSearch] = useState(filters.search);
 
-    const handleSearch = (e: React.FormEvent) => {
+    const handleSearch = useCallback((e: React.FormEvent) => {
         e.preventDefault();
         router.get(
             '/admin/players',
             { search, trust_level: filters.trust_level },
             { preserveState: true },
         );
-    };
+    }, [search, filters.trust_level]);
 
-    const handleFilterChange = (trust_level: string) => {
+    const handleFilterChange = useCallback((trust_level: string) => {
         router.get(
             '/admin/players',
             {
@@ -64,7 +64,21 @@ export default function AdminPlayersIndex({
             },
             { preserveState: true },
         );
-    };
+    }, [filters.search]);
+
+    const handlePreviousPage = useCallback(() => {
+        router.get('/admin/players', {
+            ...filters,
+            page: pagination.current_page - 1,
+        });
+    }, [filters, pagination.current_page]);
+
+    const handleNextPage = useCallback(() => {
+        router.get('/admin/players', {
+            ...filters,
+            page: pagination.current_page + 1,
+        });
+    }, [filters, pagination.current_page]);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -237,13 +251,7 @@ export default function AdminPlayersIndex({
                                         variant="outline"
                                         size="sm"
                                         disabled={pagination.current_page === 1}
-                                        onClick={() =>
-                                            router.get('/admin/players', {
-                                                ...filters,
-                                                page:
-                                                    pagination.current_page - 1,
-                                            })
-                                        }
+                                        onClick={handlePreviousPage}
                                     >
                                         <ChevronLeft className="size-4" />
                                     </Button>
@@ -254,13 +262,7 @@ export default function AdminPlayersIndex({
                                             pagination.current_page ===
                                             pagination.last_page
                                         }
-                                        onClick={() =>
-                                            router.get('/admin/players', {
-                                                ...filters,
-                                                page:
-                                                    pagination.current_page + 1,
-                                            })
-                                        }
+                                        onClick={handleNextPage}
                                     >
                                         <ChevronRight className="size-4" />
                                     </Button>

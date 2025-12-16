@@ -17,39 +17,36 @@ import {
     TrendingUp,
     User,
 } from 'lucide-react';
+import { useMemo } from 'react';
 
 interface Props {
     mod: Mod;
 }
 
-const getLoaderIcon = (loader: string) => {
-    switch (loader.toLowerCase()) {
-        case 'forge':
-            return '🔨';
-        case 'fabric':
-            return '🧵';
-        case 'neoforge':
-            return '⚡';
-        case 'quilt':
-            return '🧶';
-        default:
-            return '📦';
-    }
+const LOADER_ICONS: Record<string, string> = {
+    forge: '🔨',
+    fabric: '🧵',
+    neoforge: '⚡',
+    quilt: '🧶',
 };
 
-const getLoaderColor = (loader: string) => {
-    switch (loader.toLowerCase()) {
-        case 'forge':
-            return 'bg-orange-500/10 text-orange-600 border-orange-500/20 dark:bg-orange-500/20 dark:text-orange-400';
-        case 'fabric':
-            return 'bg-amber-500/10 text-amber-600 border-amber-500/20 dark:bg-amber-500/20 dark:text-amber-400';
-        case 'neoforge':
-            return 'bg-purple-500/10 text-purple-600 border-purple-500/20 dark:bg-purple-500/20 dark:text-purple-400';
-        case 'quilt':
-            return 'bg-blue-500/10 text-blue-600 border-blue-500/20 dark:bg-blue-500/20 dark:text-blue-400';
-        default:
-            return 'bg-gray-500/10 text-gray-600 border-gray-500/20 dark:bg-gray-500/20 dark:text-gray-400';
-    }
+const getLoaderIcon = (loader: string): string => {
+    return LOADER_ICONS[loader.toLowerCase()] ?? '📦';
+};
+
+const LOADER_COLORS: Record<string, string> = {
+    forge: 'bg-orange-500/10 text-orange-600 border-orange-500/20 dark:bg-orange-500/20 dark:text-orange-400',
+    fabric: 'bg-amber-500/10 text-amber-600 border-amber-500/20 dark:bg-amber-500/20 dark:text-amber-400',
+    neoforge:
+        'bg-purple-500/10 text-purple-600 border-purple-500/20 dark:bg-purple-500/20 dark:text-purple-400',
+    quilt: 'bg-blue-500/10 text-blue-600 border-blue-500/20 dark:bg-blue-500/20 dark:text-blue-400',
+};
+
+const getLoaderColor = (loader: string): string => {
+    return (
+        LOADER_COLORS[loader.toLowerCase()] ??
+        'bg-gray-500/10 text-gray-600 border-gray-500/20 dark:bg-gray-500/20 dark:text-gray-400'
+    );
 };
 
 export default function ModShow({ mod }: Props) {
@@ -84,14 +81,26 @@ export default function ModShow({ mod }: Props) {
         });
     };
 
-    const allVersions = [
-        ...new Set(mod.sources?.flatMap((s) => s.supported_versions) || []),
-    ]
-        .sort()
-        .reverse();
-    const allLoaders = [
-        ...new Set(mod.sources?.flatMap((s) => s.supported_loaders) || []),
-    ];
+    const allVersions = useMemo(
+        () =>
+            [
+                ...new Set(
+                    mod.sources?.flatMap((s) => s.supported_versions) || [],
+                ),
+            ]
+                .sort()
+                .reverse(),
+        [mod.sources],
+    );
+
+    const allLoaders = useMemo(
+        () => [
+            ...new Set(
+                mod.sources?.flatMap((s) => s.supported_loaders) || [],
+            ),
+        ],
+        [mod.sources],
+    );
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>

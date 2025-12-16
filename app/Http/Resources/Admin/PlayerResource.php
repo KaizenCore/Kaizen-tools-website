@@ -27,7 +27,7 @@ class PlayerResource extends JsonResource
             ]),
             'admin_notes' => $this->admin_notes,
             'reports_count' => $this->whenCounted('reports'),
-            'verified_reports_count' => $this->verifiedReports()->count(),
+            'verified_reports_count' => $this->whenCounted('verifiedReports'),
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
         ];

@@ -118,6 +118,12 @@ class SyncModsFromPlatform implements ShouldQueue
             return;
         }
 
+        // Cache categories to avoid N+1 queries
+        static $categoriesBySlug = null;
+        if ($categoriesBySlug === null) {
+            $categoriesBySlug = ModCategory::all()->keyBy('slug');
+        }
+
         // Map API category names to local category slugs
         $categoryMapping = [
             // Modrinth categories
@@ -156,11 +162,8 @@ class SyncModsFromPlatform implements ShouldQueue
         foreach ($apiCategories as $apiCategory) {
             $slug = $categoryMapping[$apiCategory] ?? $categoryMapping[strtolower($apiCategory)] ?? null;
 
-            if ($slug) {
-                $category = ModCategory::where('slug', $slug)->first();
-                if ($category) {
-                    $categoryIds[] = $category->id;
-                }
+            if ($slug && isset($categoriesBySlug[$slug])) {
+                $categoryIds[] = $categoriesBySlug[$slug]->id;
             }
         }
 

@@ -1,5 +1,6 @@
 import { minecraftColors } from '@/data/minecraft-colors';
 import type { MinecraftColor } from '@/data/minecraft-colors';
+import { memo } from 'react';
 
 export interface BannerLayer {
     pattern: string;
@@ -109,7 +110,10 @@ function getPatternPath(pattern: string): string {
     }
 }
 
-export function BannerPreview({ baseColor, layers }: BannerPreviewProps) {
+export const BannerPreview = memo(function BannerPreview({
+    baseColor,
+    layers,
+}: BannerPreviewProps) {
     const baseHex = getColorHex(baseColor);
 
     return (
@@ -148,4 +152,4 @@ export function BannerPreview({ baseColor, layers }: BannerPreviewProps) {
             </svg>
         </div>
     );
-}
+});

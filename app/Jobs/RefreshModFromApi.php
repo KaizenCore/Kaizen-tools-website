@@ -20,7 +20,10 @@ class RefreshModFromApi implements ShouldQueue
 
     public function __construct(
         public Mod $mod
-    ) {}
+    ) {
+        // Eager load sources to avoid N+1 query
+        $this->mod->loadMissing('sources');
+    }
 
     public function handle(
         ModrinthClient $modrinth,

@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/select';
 import type { Category, ModFilters } from '@/types/mods';
 import { ChevronDown, Filter, Search, X } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 interface ModFiltersComponentProps {
     filters: ModFilters;
@@ -30,17 +30,17 @@ export function ModFiltersComponent({
     const [search, setSearch] = useState(filters.search || '');
     const [isOpen, setIsOpen] = useState(true);
 
-    const handleSearchSubmit = (e: React.FormEvent) => {
+    const handleSearchSubmit = useCallback((e: React.FormEvent) => {
         e.preventDefault();
         onFilterChange({ search: search || undefined });
-    };
+    }, [search, onFilterChange]);
 
-    const handleClearSearch = () => {
+    const handleClearSearch = useCallback(() => {
         setSearch('');
         onFilterChange({ search: undefined });
-    };
+    }, [onFilterChange]);
 
-    const handleClearFilters = () => {
+    const handleClearFilters = useCallback(() => {
         setSearch('');
         onFilterChange({
             search: undefined,
@@ -48,10 +48,16 @@ export function ModFiltersComponent({
             loader: undefined,
             version: undefined,
         });
-    };
+    }, [onFilterChange]);
 
-    const hasActiveFilters =
-        filters.search || filters.category || filters.loader || filters.version;
+    const hasActiveFilters = useMemo(
+        () =>
+            filters.search ||
+            filters.category ||
+            filters.loader ||
+            filters.version,
+        [filters.search, filters.category, filters.loader, filters.version],
+    );
 
     return (
         <div className="space-y-4">

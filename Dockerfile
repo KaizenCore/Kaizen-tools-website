@@ -1,59 +1,73 @@
-FROM php:8.4-fpm-alpine AS base
+# Build stage for Composer dependencies
+FROM composer:latest AS composer-build
 
-# Install system dependencies
-RUN apk add --no-cache \
-    git \
-    curl \
-    libpng-dev \
-    libxml2-dev \
-    zip \
-    unzip \
-    sqlite \
-    sqlite-dev \
-    oniguruma-dev \
-    nodejs \
-    npm \
-    nginx \
-    supervisor
-
-# Install PHP extensions
-RUN docker-php-ext-install pdo pdo_sqlite mbstring exif pcntl bcmath gd
-
-# Get Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Set working directory
 WORKDIR /app
 
-# Copy composer files first for better caching
+# Copy composer files and install dependencies
 COPY composer.json composer.lock ./
+RUN composer install \
+    --no-dev \
+    --no-scripts \
+    --no-autoloader \
+    --prefer-dist \
+    --optimize-autoloader \
+    --no-interaction
 
-# Install PHP dependencies
-RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
+# Build stage for Node dependencies and assets
+FROM node:20-alpine AS node-build
 
-# Copy package files
+WORKDIR /app
+
+# Copy package files and install dependencies
 COPY package.json package-lock.json ./
+RUN npm ci --no-audit --prefer-offline
 
-# Install Node dependencies
-RUN npm ci
-
-# Copy application files
+# Copy application files needed for build
 COPY . .
 
-# Generate autoloader and run post-install scripts
-RUN composer dump-autoload --optimize
+# Copy vendor from composer stage (needed for some builds)
+COPY --from=composer-build /app/vendor ./vendor
 
 # Build frontend assets
 RUN npm run build
 
-# Create storage directories and set permissions
-RUN mkdir -p storage/framework/{sessions,views,cache} \
-    && mkdir -p storage/logs \
-    && mkdir -p bootstrap/cache \
-    && mkdir -p database \
-    && touch database/database.sqlite \
-    && chmod -R 775 storage bootstrap/cache database \
-    && chown -R www-data:www-data storage bootstrap/cache database
+# Final runtime stage
+FROM php:8.5-fpm-alpine
+
+# Install runtime dependencies and build dependencies in one layer
+RUN apk add --no-cache \
+    # Runtime dependencies
+    nginx \
+    supervisor \
+    sqlite \
+    libpng \
+    libxml2 \
+    oniguruma \
+    # Build dependencies (will be removed)
+    $PHPIZE_DEPS \
+    libpng-dev \
+    libxml2-dev \
+    oniguruma-dev \
+    && docker-php-ext-install -j$(nproc) \
+        pdo_sqlite \
+        pdo_mysql \
+        mbstring \
+        exif \
+        pcntl \
+        bcmath \
+        gd \
+        opcache \
+    # Remove build dependencies
+    && apk del $PHPIZE_DEPS \
+        libpng-dev \
+        libxml2-dev \
+        oniguruma-dev \
+    # Clean up
+    && rm -rf /var/cache/apk/* /tmp/*
+
+# Copy PHP-FPM configuration
+COPY docker/php-fpm.conf /usr/local/etc/php-fpm.d/zz-docker.conf
+COPY docker/php.ini /usr/local/etc/php/conf.d/99-custom.ini
 
 # Copy nginx configuration
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf
@@ -61,15 +75,49 @@ COPY docker/nginx.conf /etc/nginx/http.d/default.conf
 # Copy supervisor configuration
 COPY docker/supervisord.conf /etc/supervisord.conf
 
-# Copy entrypoint script
+# Set working directory
+WORKDIR /app
+
+# Copy vendor from composer build stage
+COPY --from=composer-build /app/vendor ./vendor
+
+# Copy built assets from node build stage
+COPY --from=node-build /app/public/build ./public/build
+
+# Copy application files
+COPY --chown=www-data:www-data . .
+
+# Final composer autoload optimization
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+RUN composer dump-autoload --optimize --classmap-authoritative --no-dev \
+    && rm /usr/bin/composer
+
+# Create storage directories and set permissions
+RUN mkdir -p \
+    storage/framework/{sessions,views,cache} \
+    storage/logs \
+    bootstrap/cache \
+    database \
+    && touch database/database.sqlite \
+    && chmod -R 775 storage bootstrap/cache database \
+    && chown -R www-data:www-data storage bootstrap/cache database
+
+# Copy and prepare entrypoint script
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
+
+# Create supervisor log directory
+RUN mkdir -p /var/log/supervisor
 
 # Define volumes for persistent data
 VOLUME ["/app/database", "/app/storage"]
 
 # Expose port
 EXPOSE 80
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+    CMD wget --quiet --tries=1 --spider http://localhost/health || exit 1
 
 # Start services
 ENTRYPOINT ["/entrypoint.sh"]

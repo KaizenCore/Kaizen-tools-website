@@ -52,7 +52,7 @@ class PlayerController extends Controller
     public function show(Player $player): Response
     {
         $player->load(['reports.reporter', 'adminOverrideBy']);
-        $player->loadCount('reports');
+        $player->loadCount(['reports', 'verifiedReports']);
 
         return Inertia::render('admin/players/show', [
             'player' => (new PlayerResource($player))->resolve(),
