@@ -36,7 +36,7 @@ COPY --from=composer-build /app/vendor ./vendor
 RUN npm run build
 
 # Final runtime stage
-FROM php:8.5-fpm-alpine
+FROM php:8.4-fpm-alpine
 
 # Install runtime dependencies and build dependencies in one layer
 RUN apk add --no-cache \
