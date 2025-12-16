@@ -329,12 +329,12 @@ const navGroups: NavGroup[] = [
 const footerNavItems: NavItem[] = [
     {
         title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
+        href: 'https://github.com/KaizenCore/Kaizen-tools-website',
         icon: Folder,
     },
     {
         title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
+        href: 'https://github.com/KaizenCore/Kaizen-tools-website#readme',
         icon: BookOpen,
     },
 ];
