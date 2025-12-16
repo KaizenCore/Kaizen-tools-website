@@ -8,10 +8,18 @@ COPY composer.json composer.lock ./
 RUN composer install \
     --no-dev \
     --no-scripts \
-    --no-autoloader \
     --prefer-dist \
-    --optimize-autoloader \
     --no-interaction
+
+# Copy app files needed for autoload generation
+COPY app ./app
+COPY bootstrap ./bootstrap
+COPY config ./config
+COPY database ./database
+COPY routes ./routes
+
+# Generate optimized autoloader
+RUN composer dump-autoload --optimize --no-dev
 
 # Build stage for Node dependencies and assets
 FROM node:20-alpine AS node-build
