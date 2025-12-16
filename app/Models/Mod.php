@@ -14,6 +14,14 @@ class Mod extends Model
     use HasFactory;
 
     /**
+     * Get the route key for the model.
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
+    /**
      * @var list<string>
      */
     protected $fillable = [

@@ -5,16 +5,26 @@ namespace App\Http\Controllers\Mods;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Mods\ModIndexRequest;
 use App\Http\Resources\ModResource;
+use App\Jobs\SyncSingleMod;
 use App\Models\Mod;
 use App\Models\ModCategory;
+use App\Services\ModAggregator\CurseForgeClient;
 use App\Services\ModAggregator\LiveSearchService;
+use App\Services\ModAggregator\ModMatcher;
+use App\Services\ModAggregator\ModNormalizer;
+use App\Services\ModAggregator\ModrinthClient;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ModController extends Controller
 {
     public function __construct(
-        private LiveSearchService $liveSearch
+        private LiveSearchService $liveSearch,
+        private ModrinthClient $modrinthClient,
+        private CurseForgeClient $curseForgeClient,
+        private ModNormalizer $normalizer,
+        private ModMatcher $matcher,
     ) {}
 
     public function index(ModIndexRequest $request): Response
@@ -98,13 +108,116 @@ class ModController extends Controller
         ]);
     }
 
-    public function show(Mod $mod): Response
+    public function show(string $mod): Response
     {
-        $mod->load(['sources', 'categories']);
+        // First try to find the mod in our database
+        $existingMod = Mod::where('slug', $mod)->with(['sources', 'categories'])->first();
 
+        if ($existingMod) {
+            return Inertia::render('mods/show', [
+                'mod' => (new ModResource($existingMod))->resolve(),
+            ]);
+        }
+
+        // Mod not in database - try to fetch from APIs
+        $modData = $this->fetchModFromApis($mod);
+
+        if (! $modData) {
+            abort(404, 'Mod not found');
+        }
+
+        // Queue a job to sync this mod for future requests
+        SyncSingleMod::dispatch($modData)->onQueue('default');
+
+        // Return the live data for now
         return Inertia::render('mods/show', [
-            'mod' => (new ModResource($mod))->resolve(),
+            'mod' => $modData,
+            'isLiveResult' => true,
         ]);
+    }
+
+    /**
+     * Fetch mod from APIs by slug/id.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function fetchModFromApis(string $slug): ?array
+    {
+        $modrinthData = null;
+        $curseforgeData = null;
+
+        // Try Modrinth first (uses slug)
+        try {
+            $modrinthData = $this->modrinthClient->getProject($slug);
+        } catch (\Exception $e) {
+            // Ignore, will try CurseForge
+        }
+
+        // Try CurseForge (search by slug since we don't have ID)
+        try {
+            $cfSearch = $this->curseForgeClient->search($slug, 5);
+            $cfResults = $cfSearch['data'] ?? [];
+
+            // Find exact slug match
+            foreach ($cfResults as $result) {
+                if (Str::slug($result['slug'] ?? '') === $slug || Str::slug($result['name'] ?? '') === $slug) {
+                    $curseforgeData = $result;
+                    break;
+                }
+            }
+        } catch (\Exception $e) {
+            // Ignore
+        }
+
+        if (! $modrinthData && ! $curseforgeData) {
+            return null;
+        }
+
+        // Normalize and merge the data
+        $normalizedMr = $modrinthData ? $this->normalizer->normalizeModrinth($modrinthData) : null;
+        $normalizedCf = $curseforgeData ? $this->normalizer->normalizeCurseforge($curseforgeData) : null;
+
+        // Prefer Modrinth data, merge with CurseForge if available
+        $result = $normalizedMr ?? $normalizedCf;
+
+        if ($normalizedMr && $normalizedCf) {
+            $result['total_downloads'] = ($normalizedMr['downloads'] ?? 0) + ($normalizedCf['downloads'] ?? 0);
+            $result['has_modrinth'] = true;
+            $result['has_curseforge'] = true;
+            $result['curseforge_data'] = $normalizedCf;
+        } else {
+            $result['has_modrinth'] = $normalizedMr !== null;
+            $result['has_curseforge'] = $normalizedCf !== null;
+        }
+
+        // Format for frontend
+        return [
+            'id' => $result['external_id'] ?? $slug,
+            'name' => $result['name'] ?? 'Unknown Mod',
+            'slug' => $result['slug'] ?? $slug,
+            'summary' => $result['summary'] ?? $result['description'] ?? null,
+            'author' => $result['author'] ?? 'Unknown',
+            'icon_url' => $result['icon_url'] ?? null,
+            'total_downloads' => $result['total_downloads'] ?? $result['downloads'] ?? 0,
+            'formatted_downloads' => $this->formatDownloads($result['total_downloads'] ?? $result['downloads'] ?? 0),
+            'has_modrinth' => $result['has_modrinth'],
+            'has_curseforge' => $result['has_curseforge'],
+            'categories' => $result['categories'] ?? [],
+            'sources' => [],
+            'description' => $result['description'] ?? $result['body'] ?? null,
+        ];
+    }
+
+    private function formatDownloads(int $downloads): string
+    {
+        if ($downloads >= 1000000) {
+            return number_format($downloads / 1000000, 1).'M';
+        }
+        if ($downloads >= 1000) {
+            return number_format($downloads / 1000, 1).'K';
+        }
+
+        return (string) $downloads;
     }
 
     /**
