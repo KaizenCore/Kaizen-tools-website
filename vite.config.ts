@@ -4,6 +4,8 @@ import react from '@vitejs/plugin-react';
 import laravel from 'laravel-vite-plugin';
 import { defineConfig } from 'vite';
 
+const isDocker = process.env.DOCKER_BUILD === 'true';
+
 export default defineConfig({
     plugins: [
         laravel({
@@ -17,10 +19,11 @@ export default defineConfig({
             },
         }),
         tailwindcss(),
-        wayfinder({
+        // Skip Wayfinder generation in Docker (types are pre-generated)
+        !isDocker && wayfinder({
             formVariants: true,
         }),
-    ],
+    ].filter(Boolean),
     esbuild: {
         jsx: 'automatic',
     },

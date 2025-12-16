@@ -44,8 +44,8 @@ COPY . .
 # Copy vendor from composer stage (needed for Wayfinder)
 COPY --from=composer-build /app/vendor ./vendor
 
-# Build frontend assets
-RUN npm run build
+# Build frontend assets (skip Wayfinder generation, types are pre-committed)
+RUN DOCKER_BUILD=true npm run build
 
 # Final runtime stage
 FROM php:8.4-fpm-alpine
