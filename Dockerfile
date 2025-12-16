@@ -12,14 +12,15 @@ RUN composer install \
     --no-interaction
 
 # Copy app files needed for autoload generation
+COPY artisan ./artisan
 COPY app ./app
 COPY bootstrap ./bootstrap
 COPY config ./config
 COPY database ./database
 COPY routes ./routes
 
-# Generate optimized autoloader
-RUN composer dump-autoload --optimize --no-dev
+# Generate optimized autoloader (skip scripts to avoid missing dependencies)
+RUN composer dump-autoload --optimize --no-dev --no-scripts
 
 # Build stage for Node dependencies and assets
 FROM node:20-alpine AS node-build
