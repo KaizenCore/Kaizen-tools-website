@@ -18,6 +18,10 @@ FROM node:20-alpine AS node-build
 
 WORKDIR /app
 
+# Install PHP for Wayfinder type generation
+RUN apk add --no-cache php84 php84-phar php84-mbstring php84-openssl php84-tokenizer php84-ctype php84-session \
+    && ln -s /usr/bin/php84 /usr/bin/php
+
 # Copy package files and install dependencies
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --prefer-offline
@@ -25,7 +29,7 @@ RUN npm ci --no-audit --prefer-offline
 # Copy application files needed for build
 COPY . .
 
-# Copy vendor from composer stage (needed for some builds)
+# Copy vendor from composer stage (needed for Wayfinder)
 COPY --from=composer-build /app/vendor ./vendor
 
 # Build frontend assets
