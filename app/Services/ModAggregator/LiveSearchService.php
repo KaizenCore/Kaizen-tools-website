@@ -46,10 +46,8 @@ class LiveSearchService
             // Merge and deduplicate
             $merged = $this->mergeResults($normalizedModrinth, $normalizedCurseforge);
 
-            // Queue sync jobs for new mods (fire and forget) - only on first page
-            if ($offset === 0) {
-                $this->queueSyncJobs($merged);
-            }
+            // Queue sync jobs for all loaded mods (fire and forget)
+            $this->queueSyncJobs($merged);
 
             // Calculate total from both APIs
             $totalHits = max($modrinthResults['total'], $curseforgeResults['total']);
@@ -153,7 +151,11 @@ class LiveSearchService
      */
     private function queueSyncJobs(Collection $mods): void
     {
-        foreach ($mods->take(10) as $modData) {
+        // Get all existing slugs in one query to avoid N+1
+        $slugs = $mods->map(fn ($m) => $m['slug'] ?? $m['external_slug'] ?? null)->filter()->values();
+        $existingMods = Mod::whereIn('slug', $slugs)->get()->keyBy('slug');
+
+        foreach ($mods as $modData) {
             $slug = $modData['slug'] ?? $modData['external_slug'] ?? null;
             $name = $modData['name'] ?? null;
 
@@ -161,11 +163,8 @@ class LiveSearchService
                 continue;
             }
 
-            // Check if mod already exists in database
-            $existingMod = Mod::query()
-                ->when($slug, fn ($q) => $q->where('slug', $slug))
-                ->when($name, fn ($q) => $q->orWhere('name', $name))
-                ->first();
+            $slug = $slug ?? \Illuminate\Support\Str::slug($name);
+            $existingMod = $existingMods->get($slug);
 
             if ($existingMod) {
                 // Queue refresh job if mod is stale (>24 hours old)
@@ -173,8 +172,8 @@ class LiveSearchService
                     RefreshModFromApi::dispatch($existingMod)->onQueue('default');
                 }
             } else {
-                // Add slug to modData if missing and dispatch sync job
-                $modData['slug'] = $slug ?? \Illuminate\Support\Str::slug($name);
+                // Add slug to modData and dispatch sync job
+                $modData['slug'] = $slug;
                 SyncSingleMod::dispatch($modData)->onQueue('default');
             }
         }
