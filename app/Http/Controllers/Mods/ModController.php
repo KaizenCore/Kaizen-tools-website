@@ -126,10 +126,7 @@ class ModController extends Controller
             abort(404, 'Mod not found');
         }
 
-        // Queue a job to sync this mod for future requests
-        SyncSingleMod::dispatch($modData)->onQueue('default');
-
-        // Return the live data for now
+        // Return the live data (sync job is dispatched in fetchModFromApis)
         return Inertia::render('mods/show', [
             'mod' => $modData,
             'isLiveResult' => true,
@@ -146,7 +143,7 @@ class ModController extends Controller
         $modrinthData = null;
         $curseforgeData = null;
 
-        // Try Modrinth first (uses slug)
+        // Try Modrinth first (uses slug directly)
         try {
             $modrinthData = $this->modrinthClient->getProject($slug);
         } catch (\Exception $e) {
@@ -155,12 +152,15 @@ class ModController extends Controller
 
         // Try CurseForge (search by slug since we don't have ID)
         try {
-            $cfSearch = $this->curseForgeClient->search($slug, 5);
+            $cfSearch = $this->curseForgeClient->search($slug, 10);
             $cfResults = $cfSearch['data'] ?? [];
 
-            // Find exact slug match
+            // Find exact or close slug match
             foreach ($cfResults as $result) {
-                if (Str::slug($result['slug'] ?? '') === $slug || Str::slug($result['name'] ?? '') === $slug) {
+                $cfSlug = Str::slug($result['slug'] ?? '');
+                $cfNameSlug = Str::slug($result['name'] ?? '');
+
+                if ($cfSlug === $slug || $cfNameSlug === $slug) {
                     $curseforgeData = $result;
                     break;
                 }
@@ -173,38 +173,88 @@ class ModController extends Controller
             return null;
         }
 
-        // Normalize and merge the data
-        $normalizedMr = $modrinthData ? $this->normalizer->normalizeModrinth($modrinthData) : null;
-        $normalizedCf = $curseforgeData ? $this->normalizer->normalizeCurseforge($curseforgeData) : null;
+        // Build the result directly from raw API data for better control
+        $hasModrinth = $modrinthData !== null;
+        $hasCurseforge = $curseforgeData !== null;
 
-        // Prefer Modrinth data, merge with CurseForge if available
-        $result = $normalizedMr ?? $normalizedCf;
+        // Extract data preferring Modrinth
+        $name = $modrinthData['title'] ?? $modrinthData['name'] ?? $curseforgeData['name'] ?? 'Unknown Mod';
+        $summary = $modrinthData['description'] ?? $curseforgeData['summary'] ?? null;
+        $author = $modrinthData['author'] ?? $curseforgeData['authors'][0]['name'] ?? 'Unknown';
+        $iconUrl = $modrinthData['icon_url'] ?? $curseforgeData['logo']['thumbnailUrl'] ?? null;
+        $description = $modrinthData['body'] ?? $curseforgeData['summary'] ?? null;
 
-        if ($normalizedMr && $normalizedCf) {
-            $result['total_downloads'] = ($normalizedMr['downloads'] ?? 0) + ($normalizedCf['downloads'] ?? 0);
-            $result['has_modrinth'] = true;
-            $result['has_curseforge'] = true;
-            $result['curseforge_data'] = $normalizedCf;
-        } else {
-            $result['has_modrinth'] = $normalizedMr !== null;
-            $result['has_curseforge'] = $normalizedCf !== null;
+        $mrDownloads = $modrinthData['downloads'] ?? 0;
+        $cfDownloads = $curseforgeData['downloadCount'] ?? 0;
+        $totalDownloads = $mrDownloads + $cfDownloads;
+
+        // Build sources array for the frontend
+        $sources = [];
+        if ($hasModrinth) {
+            $sources[] = [
+                'platform' => 'modrinth',
+                'external_id' => $modrinthData['id'] ?? $modrinthData['project_id'] ?? '',
+                'external_slug' => $modrinthData['slug'] ?? $slug,
+                'project_url' => 'https://modrinth.com/mod/'.($modrinthData['slug'] ?? $slug),
+                'downloads' => $mrDownloads,
+                'supported_versions' => $modrinthData['game_versions'] ?? $modrinthData['versions'] ?? [],
+                'supported_loaders' => array_filter($modrinthData['loaders'] ?? [], fn ($l) => in_array(strtolower($l), ['forge', 'fabric', 'quilt', 'neoforge'])),
+            ];
+        }
+        if ($hasCurseforge) {
+            $sources[] = [
+                'platform' => 'curseforge',
+                'external_id' => (string) ($curseforgeData['id'] ?? ''),
+                'external_slug' => $curseforgeData['slug'] ?? '',
+                'project_url' => $curseforgeData['links']['websiteUrl'] ?? '',
+                'downloads' => $cfDownloads,
+                'supported_versions' => collect($curseforgeData['latestFilesIndexes'] ?? [])->pluck('gameVersion')->filter()->unique()->values()->all(),
+                'supported_loaders' => [],
+            ];
         }
 
-        // Format for frontend
+        // Extract categories
+        $categories = [];
+        if ($hasModrinth && isset($modrinthData['categories'])) {
+            $categories = array_merge($categories, $modrinthData['categories']);
+        }
+        if ($hasCurseforge && isset($curseforgeData['categories'])) {
+            $categories = array_merge($categories, collect($curseforgeData['categories'])->pluck('name')->all());
+        }
+        $categories = array_unique($categories);
+
+        // Queue sync job with proper data structure
+        $syncData = [
+            'name' => $name,
+            'slug' => $modrinthData['slug'] ?? $slug,
+            'summary' => $summary,
+            'author' => $author,
+            'icon_url' => $iconUrl,
+            'downloads' => $totalDownloads,
+            'external_id' => $modrinthData['id'] ?? $modrinthData['project_id'] ?? ($curseforgeData['id'] ?? null),
+            'external_slug' => $modrinthData['slug'] ?? $curseforgeData['slug'] ?? $slug,
+            'project_url' => $hasModrinth ? 'https://modrinth.com/mod/'.($modrinthData['slug'] ?? $slug) : ($curseforgeData['links']['websiteUrl'] ?? ''),
+            'platforms' => array_filter([$hasModrinth ? 'modrinth' : null, $hasCurseforge ? 'curseforge' : null]),
+            'categories' => $categories,
+        ];
+
+        SyncSingleMod::dispatch($syncData)->onQueue('default');
+
         return [
-            'id' => $result['external_id'] ?? $slug,
-            'name' => $result['name'] ?? 'Unknown Mod',
-            'slug' => $result['slug'] ?? $slug,
-            'summary' => $result['summary'] ?? $result['description'] ?? null,
-            'author' => $result['author'] ?? 'Unknown',
-            'icon_url' => $result['icon_url'] ?? null,
-            'total_downloads' => $result['total_downloads'] ?? $result['downloads'] ?? 0,
-            'formatted_downloads' => $this->formatDownloads($result['total_downloads'] ?? $result['downloads'] ?? 0),
-            'has_modrinth' => $result['has_modrinth'],
-            'has_curseforge' => $result['has_curseforge'],
-            'categories' => $result['categories'] ?? [],
-            'sources' => [],
-            'description' => $result['description'] ?? $result['body'] ?? null,
+            'id' => $modrinthData['id'] ?? $modrinthData['project_id'] ?? $curseforgeData['id'] ?? $slug,
+            'name' => $name,
+            'slug' => $modrinthData['slug'] ?? $slug,
+            'summary' => $summary,
+            'author' => $author,
+            'icon_url' => $iconUrl,
+            'total_downloads' => $totalDownloads,
+            'formatted_downloads' => $this->formatDownloads($totalDownloads),
+            'has_modrinth' => $hasModrinth,
+            'has_curseforge' => $hasCurseforge,
+            'categories' => $categories,
+            'sources' => $sources,
+            'description' => $description,
+            'is_live_result' => true,
         ];
     }
 

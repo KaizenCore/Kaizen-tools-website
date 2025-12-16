@@ -167,7 +167,17 @@ class LiveSearchService
     public function formatForFrontend(Collection $results): array
     {
         return $results->map(function ($mod) {
-            $slug = $mod['slug'] ?? $mod['external_slug'] ?? \Illuminate\Support\Str::slug($mod['name'] ?? 'unknown');
+            // Use the Modrinth slug (external_slug) as the primary slug since we fetch from Modrinth API
+            $modrinthSlug = $mod['external_slug'] ?? null;
+            $slug = $modrinthSlug ?? \Illuminate\Support\Str::slug($mod['name'] ?? 'unknown');
+
+            // Get CurseForge ID if available
+            $curseforgeId = null;
+            if (isset($mod['curseforge_data']['external_id'])) {
+                $curseforgeId = $mod['curseforge_data']['external_id'];
+            } elseif (! in_array('modrinth', $mod['platforms'] ?? []) && isset($mod['external_id'])) {
+                $curseforgeId = $mod['external_id'];
+            }
 
             return [
                 'id' => $mod['external_id'] ?? $slug,
@@ -183,6 +193,9 @@ class LiveSearchService
                 'categories' => $mod['categories'] ?? [],
                 'sources' => [],
                 'is_live_result' => true,
+                // Store platform-specific IDs for fetching details
+                'modrinth_slug' => $modrinthSlug,
+                'curseforge_id' => $curseforgeId,
             ];
         })->values()->toArray();
     }

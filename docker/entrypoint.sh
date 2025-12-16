@@ -63,6 +63,10 @@ if [ -z "$SKIP_MIGRATIONS" ]; then
     # Seed mod categories (uses updateOrCreate, safe to run multiple times)
     echo "Seeding mod categories..."
     php artisan db:seed --class=ModCategorySeeder --force --no-interaction
+
+    # Run mods maintenance to refresh stale data
+    echo "Running mods maintenance..."
+    php artisan mods:maintenance --sync --limit=50 --no-interaction 2>/dev/null || true
 else
     echo "Skipping migrations (SKIP_MIGRATIONS is set)"
 fi
