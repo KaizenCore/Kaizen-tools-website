@@ -59,6 +59,10 @@ if [ -z "$SKIP_MIGRATIONS" ]; then
     echo "Running database migrations..."
     # Don't use --isolated flag as it requires cache_locks table which may not exist yet
     php artisan migrate --force --no-interaction
+
+    # Seed mod categories (uses updateOrCreate, safe to run multiple times)
+    echo "Seeding mod categories..."
+    php artisan db:seed --class=ModCategorySeeder --force --no-interaction
 else
     echo "Skipping migrations (SKIP_MIGRATIONS is set)"
 fi
