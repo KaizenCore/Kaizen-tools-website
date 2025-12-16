@@ -1,14 +1,12 @@
 import { ModCard } from '@/components/mods/mod-card';
-import { ModCardSkeleton } from '@/components/mods/mod-card-skeleton';
 import { ModFiltersComponent } from '@/components/mods/mod-filters';
-import { Pagination } from '@/components/mods/pagination';
 import { Badge } from '@/components/ui/badge';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import type { Category, Mod, ModFilters, Paginated } from '@/types/mods';
-import { Head, router } from '@inertiajs/react';
-import { Package, Search, Zap } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Head, InfiniteScroll, router } from '@inertiajs/react';
+import { Loader2, Package, Search, Zap } from 'lucide-react';
+import { useCallback } from 'react';
 
 interface Props {
     mods: Paginated<Mod>;
@@ -30,32 +28,19 @@ export default function ModsIndex({
     filters,
     isLiveSearch,
 }: Props) {
-    const [isLoading, setIsLoading] = useState(false);
-
-    useEffect(() => {
-        const removeStartListener = router.on('start', () =>
-            setIsLoading(true),
-        );
-        const removeFinishListener = router.on('finish', () =>
-            setIsLoading(false),
-        );
-
-        return () => {
-            removeStartListener();
-            removeFinishListener();
-        };
-    }, []);
-
-    const handleFilterChange = useCallback((newFilters: Partial<ModFilters>) => {
-        router.get(
-            '/mods',
-            { ...filters, ...newFilters },
-            {
-                preserveState: true,
-                preserveScroll: true,
-            },
-        );
-    }, [filters]);
+    const handleFilterChange = useCallback(
+        (newFilters: Partial<ModFilters>) => {
+            router.get(
+                '/mods',
+                { ...filters, ...newFilters },
+                {
+                    preserveState: true,
+                    preserveScroll: true,
+                },
+            );
+        },
+        [filters],
+    );
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -91,23 +76,30 @@ export default function ModsIndex({
                 )}
 
                 {mods.data.length > 0 ? (
-                    <>
-                        <div className={`mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 transition-opacity duration-200 ${isLoading ? 'pointer-events-none opacity-50' : ''}`}>
+                    isLiveSearch ? (
+                        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
                             {mods.data.map((mod) => (
                                 <ModCard key={mod.id} mod={mod} />
                             ))}
                         </div>
-
-                        {!isLiveSearch && mods.meta.last_page > 1 && (
-                            <div className="mt-8">
-                                <Pagination data={mods} />
+                    ) : (
+                        <InfiniteScroll
+                            data="mods"
+                            onlyNext
+                            preserveUrl
+                            loading={() => (
+                                <div className="flex items-center justify-center py-8">
+                                    <Loader2 className="size-6 animate-spin text-muted-foreground" />
+                                </div>
+                            )}
+                        >
+                            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+                                {mods.data.map((mod) => (
+                                    <ModCard key={mod.id} mod={mod} />
+                                ))}
                             </div>
-                        )}
-                    </>
-                ) : isLoading ? (
-                    <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-                        <ModCardSkeleton count={12} />
-                    </div>
+                        </InfiniteScroll>
+                    )
                 ) : (
                     <div className="mt-16 flex flex-col items-center justify-center space-y-4 py-12">
                         <div className="flex size-20 items-center justify-center rounded-full bg-muted/50">

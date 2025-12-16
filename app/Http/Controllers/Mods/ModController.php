@@ -83,13 +83,15 @@ class ModController extends Controller
             default => 'total_downloads',
         };
 
-        $mods = $query
-            ->orderBy($sortField, $request->order ?? 'desc')
-            ->paginate(24)
-            ->withQueryString();
-
         return Inertia::render('mods/index', [
-            'mods' => ModResource::collection($mods),
+            'mods' => Inertia::scroll(
+                fn () => ModResource::collection(
+                    $query
+                        ->orderBy($sortField, $request->order ?? 'desc')
+                        ->paginate(24)
+                        ->withQueryString()
+                )
+            ),
             'categories' => $categories,
             'filters' => $request->only(['search', 'category', 'loader', 'version', 'sort', 'order']),
             'isLiveSearch' => false,

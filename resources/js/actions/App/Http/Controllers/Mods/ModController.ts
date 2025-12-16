@@ -82,7 +82,7 @@ index.form = indexForm
 
 /**
 * @see \App\Http\Controllers\Mods\ModController::show
-* @see app/Http/Controllers/Mods/ModController.php:99
+* @see app/Http/Controllers/Mods/ModController.php:101
 * @route '/mods/{mod}'
 */
 export const show = (args: { mod: string | { slug: string } } | [mod: string | { slug: string } ] | string | { slug: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -97,7 +97,7 @@ show.definition = {
 
 /**
 * @see \App\Http\Controllers\Mods\ModController::show
-* @see app/Http/Controllers/Mods/ModController.php:99
+* @see app/Http/Controllers/Mods/ModController.php:101
 * @route '/mods/{mod}'
 */
 show.url = (args: { mod: string | { slug: string } } | [mod: string | { slug: string } ] | string | { slug: string }, options?: RouteQueryOptions) => {
@@ -130,7 +130,7 @@ show.url = (args: { mod: string | { slug: string } } | [mod: string | { slug: st
 
 /**
 * @see \App\Http\Controllers\Mods\ModController::show
-* @see app/Http/Controllers/Mods/ModController.php:99
+* @see app/Http/Controllers/Mods/ModController.php:101
 * @route '/mods/{mod}'
 */
 show.get = (args: { mod: string | { slug: string } } | [mod: string | { slug: string } ] | string | { slug: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -140,7 +140,7 @@ show.get = (args: { mod: string | { slug: string } } | [mod: string | { slug: st
 
 /**
 * @see \App\Http\Controllers\Mods\ModController::show
-* @see app/Http/Controllers/Mods/ModController.php:99
+* @see app/Http/Controllers/Mods/ModController.php:101
 * @route '/mods/{mod}'
 */
 show.head = (args: { mod: string | { slug: string } } | [mod: string | { slug: string } ] | string | { slug: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -150,7 +150,7 @@ show.head = (args: { mod: string | { slug: string } } | [mod: string | { slug: s
 
 /**
 * @see \App\Http\Controllers\Mods\ModController::show
-* @see app/Http/Controllers/Mods/ModController.php:99
+* @see app/Http/Controllers/Mods/ModController.php:101
 * @route '/mods/{mod}'
 */
 const showForm = (args: { mod: string | { slug: string } } | [mod: string | { slug: string } ] | string | { slug: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -160,7 +160,7 @@ const showForm = (args: { mod: string | { slug: string } } | [mod: string | { sl
 
 /**
 * @see \App\Http\Controllers\Mods\ModController::show
-* @see app/Http/Controllers/Mods/ModController.php:99
+* @see app/Http/Controllers/Mods/ModController.php:101
 * @route '/mods/{mod}'
 */
 showForm.get = (args: { mod: string | { slug: string } } | [mod: string | { slug: string } ] | string | { slug: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -170,7 +170,7 @@ showForm.get = (args: { mod: string | { slug: string } } | [mod: string | { slug
 
 /**
 * @see \App\Http\Controllers\Mods\ModController::show
-* @see app/Http/Controllers/Mods/ModController.php:99
+* @see app/Http/Controllers/Mods/ModController.php:101
 * @route '/mods/{mod}'
 */
 showForm.head = (args: { mod: string | { slug: string } } | [mod: string | { slug: string } ] | string | { slug: string }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
