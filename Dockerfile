@@ -44,11 +44,13 @@ RUN apk add --no-cache \
     nginx \
     supervisor \
     sqlite \
+    sqlite-libs \
     libpng \
     libxml2 \
     oniguruma \
     # Build dependencies (will be removed)
     $PHPIZE_DEPS \
+    sqlite-dev \
     libpng-dev \
     libxml2-dev \
     oniguruma-dev \
@@ -63,6 +65,7 @@ RUN apk add --no-cache \
         opcache \
     # Remove build dependencies
     && apk del $PHPIZE_DEPS \
+        sqlite-dev \
         libpng-dev \
         libxml2-dev \
         oniguruma-dev \
