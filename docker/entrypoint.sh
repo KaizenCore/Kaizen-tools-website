@@ -26,6 +26,10 @@ php artisan view:cache
 echo "Running migrations..."
 php artisan migrate --force
 
+# Run seeders
+echo "Running seeders..."
+php artisan db:seed --force
+
 # Create supervisor log directory
 mkdir -p /var/log/supervisor
 
