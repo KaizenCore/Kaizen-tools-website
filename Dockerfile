@@ -9,7 +9,8 @@ RUN composer install \
     --no-dev \
     --no-scripts \
     --prefer-dist \
-    --no-interaction
+    --no-interaction \
+    --ignore-platform-req=php
 
 # Copy app files needed for autoload generation
 COPY artisan ./artisan
@@ -19,8 +20,10 @@ COPY config ./config
 COPY database ./database
 COPY routes ./routes
 
-# Generate optimized autoloader (skip scripts to avoid missing dependencies)
-RUN composer dump-autoload --optimize --no-dev --no-scripts
+# Generate optimized autoloader and remove platform check
+RUN composer dump-autoload --optimize --no-dev --no-scripts \
+    && rm -f vendor/composer/platform_check.php \
+    && sed -i '/platform_check.php/d' vendor/composer/autoload_real.php
 
 # Build stage for Node dependencies and assets
 FROM node:20-alpine AS node-build
