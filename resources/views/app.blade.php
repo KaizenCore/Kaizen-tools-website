@@ -42,6 +42,9 @@
         @viteReactRefresh
         @vite(['resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
         @inertiaHead
+
+        {{-- Umami Analytics --}}
+        <script defer src="https://umami.3de-scs.tech/script.js" data-website-id="95276194-f21f-4198-b614-798ba66fbf6f"></script>
     </head>
     <body class="font-sans antialiased">
         @inertia
