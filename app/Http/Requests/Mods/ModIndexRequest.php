@@ -23,6 +23,7 @@ class ModIndexRequest extends FormRequest
             'version' => ['nullable', 'string', 'max:20'],
             'sort' => ['nullable', 'string', 'in:downloads,updated,name'],
             'order' => ['nullable', 'string', 'in:asc,desc'],
+            'page' => ['nullable', 'integer', 'min:1'],
         ];
     }
 }

@@ -35,44 +35,63 @@ class ModController extends Controller
 
         // If there's a search query, perform live search from APIs
         if ($request->search && strlen($request->search) >= 2) {
-            $liveResults = $this->liveSearch->search($request->search, 24);
-            $liveModsFormatted = $this->liveSearch->formatForFrontend($liveResults);
+            $perPage = 24;
+            $page = (int) ($request->page ?? 1);
+            $offset = ($page - 1) * $perPage;
 
-            // Also get local results
-            $localMods = Mod::query()
-                ->with(['sources', 'categories'])
-                ->where(function ($q) use ($request) {
-                    $q->where('name', 'like', "%{$request->search}%")
-                        ->orWhere('summary', 'like', "%{$request->search}%")
-                        ->orWhere('author', 'like', "%{$request->search}%");
-                })
-                ->orderBy('total_downloads', 'desc')
-                ->limit(24)
-                ->get();
+            // Get live search results with pagination
+            $liveResults = $this->liveSearch->search($request->search, $perPage, $offset);
+            $liveModsFormatted = $this->liveSearch->formatForFrontend($liveResults['data']);
+
+            // Also get local results (only on first page to avoid duplicates)
+            $localMods = collect();
+            if ($page === 1) {
+                $localMods = Mod::query()
+                    ->with(['sources', 'categories'])
+                    ->where(function ($q) use ($request) {
+                        $q->where('name', 'like', "%{$request->search}%")
+                            ->orWhere('summary', 'like', "%{$request->search}%")
+                            ->orWhere('author', 'like', "%{$request->search}%");
+                    })
+                    ->orderBy('total_downloads', 'desc')
+                    ->limit($perPage)
+                    ->get();
+            }
 
             // Merge local and live results, prioritizing local (which has more data)
             $mergedResults = $this->mergeLocalAndLiveResults($localMods, $liveModsFormatted);
 
+            // Calculate pagination info
+            $totalResults = $liveResults['total'] + ($page === 1 ? $localMods->count() : 0);
+            $lastPage = (int) ceil($totalResults / $perPage);
+            $hasMorePages = $liveResults['has_more'];
+
+            // Build next page URL if there are more results
+            $nextPageUrl = $hasMorePages ? url('/mods').'?'.http_build_query([
+                ...$request->only(['search', 'category', 'loader', 'version', 'sort', 'order']),
+                'page' => $page + 1,
+            ]) : null;
+
             return Inertia::render('mods/index', [
-                'mods' => [
+                'mods' => Inertia::scroll(fn () => [
                     'data' => $mergedResults,
                     'links' => [
-                        'first' => null,
+                        'first' => url('/mods').'?'.http_build_query([...$request->only(['search', 'category', 'loader', 'version', 'sort', 'order']), 'page' => 1]),
                         'last' => null,
-                        'prev' => null,
-                        'next' => null,
+                        'prev' => $page > 1 ? url('/mods').'?'.http_build_query([...$request->only(['search', 'category', 'loader', 'version', 'sort', 'order']), 'page' => $page - 1]) : null,
+                        'next' => $nextPageUrl,
                     ],
                     'meta' => [
-                        'current_page' => 1,
-                        'from' => 1,
-                        'last_page' => 1,
-                        'per_page' => count($mergedResults),
-                        'to' => count($mergedResults),
-                        'total' => count($mergedResults),
+                        'current_page' => $page,
+                        'from' => $offset + 1,
+                        'last_page' => max($lastPage, $page + ($hasMorePages ? 1 : 0)),
+                        'per_page' => $perPage,
+                        'to' => $offset + count($mergedResults),
+                        'total' => $totalResults,
                         'path' => url('/mods'),
                         'links' => [],
                     ],
-                ],
+                ]),
                 'categories' => $categories,
                 'filters' => $request->only(['search', 'category', 'loader', 'version', 'sort', 'order']),
                 'isLiveSearch' => true,

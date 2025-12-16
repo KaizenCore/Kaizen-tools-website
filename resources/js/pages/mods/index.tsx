@@ -76,30 +76,22 @@ export default function ModsIndex({
                 )}
 
                 {mods.data.length > 0 ? (
-                    isLiveSearch ? (
+                    <InfiniteScroll
+                        data="mods"
+                        onlyNext
+                        preserveUrl
+                        loading={() => (
+                            <div className="flex items-center justify-center py-8">
+                                <Loader2 className="size-6 animate-spin text-muted-foreground" />
+                            </div>
+                        )}
+                    >
                         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
                             {mods.data.map((mod) => (
                                 <ModCard key={mod.id} mod={mod} />
                             ))}
                         </div>
-                    ) : (
-                        <InfiniteScroll
-                            data="mods"
-                            onlyNext
-                            preserveUrl
-                            loading={() => (
-                                <div className="flex items-center justify-center py-8">
-                                    <Loader2 className="size-6 animate-spin text-muted-foreground" />
-                                </div>
-                            )}
-                        >
-                            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-                                {mods.data.map((mod) => (
-                                    <ModCard key={mod.id} mod={mod} />
-                                ))}
-                            </div>
-                        </InfiniteScroll>
-                    )
+                    </InfiniteScroll>
                 ) : (
                     <div className="mt-16 flex flex-col items-center justify-center space-y-4 py-12">
                         <div className="flex size-20 items-center justify-center rounded-full bg-muted/50">

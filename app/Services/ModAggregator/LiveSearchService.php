@@ -18,64 +18,86 @@ class LiveSearchService
     ) {}
 
     /**
-     * Search both APIs and local database, returning merged results.
+     * Search both APIs and local database, returning merged results with pagination info.
      *
-     * @return Collection<int, array<string, mixed>>
+     * @return array{data: Collection<int, array<string, mixed>>, total: int, has_more: bool}
      */
-    public function search(string $query, int $limit = 20): Collection
+    public function search(string $query, int $limit = 20, int $offset = 0): array
     {
         if (strlen($query) < 2) {
-            return collect();
+            return ['data' => collect(), 'total' => 0, 'has_more' => false];
         }
 
-        $cacheKey = 'live_search:'.md5($query.':'.$limit);
+        $cacheKey = 'live_search:'.md5($query.':'.$limit.':'.$offset);
 
-        return Cache::remember($cacheKey, now()->addMinutes(5), function () use ($query, $limit) {
-            // Search both APIs in parallel using concurrent requests
-            $modrinthResults = $this->searchModrinth($query, $limit);
-            $curseforgeResults = $this->searchCurseForge($query, $limit);
+        return Cache::remember($cacheKey, now()->addMinutes(5), function () use ($query, $limit, $offset) {
+            // Search both APIs with offset for pagination
+            $modrinthResults = $this->searchModrinth($query, $limit, $offset);
+            $curseforgeResults = $this->searchCurseForge($query, $limit, $offset);
 
             // Normalize results
-            $normalizedModrinth = $modrinthResults->map(
+            $normalizedModrinth = $modrinthResults['hits']->map(
                 fn ($item) => $this->normalizer->normalizeModrinth($item)
             );
-            $normalizedCurseforge = $curseforgeResults->map(
+            $normalizedCurseforge = $curseforgeResults['hits']->map(
                 fn ($item) => $this->normalizer->normalizeCurseforge($item)
             );
 
             // Merge and deduplicate
             $merged = $this->mergeResults($normalizedModrinth, $normalizedCurseforge);
 
-            // Queue sync jobs for new mods (fire and forget)
-            $this->queueSyncJobs($merged);
+            // Queue sync jobs for new mods (fire and forget) - only on first page
+            if ($offset === 0) {
+                $this->queueSyncJobs($merged);
+            }
 
-            return $merged->take($limit);
+            // Calculate total from both APIs
+            $totalHits = max($modrinthResults['total'], $curseforgeResults['total']);
+            $hasMore = ($offset + $limit) < $totalHits;
+
+            return [
+                'data' => $merged->take($limit),
+                'total' => $totalHits,
+                'has_more' => $hasMore,
+            ];
         });
     }
 
-    private function searchModrinth(string $query, int $limit): Collection
+    /**
+     * @return array{hits: Collection, total: int}
+     */
+    private function searchModrinth(string $query, int $limit, int $offset = 0): array
     {
         try {
-            $response = $this->modrinthClient->search($query, $limit);
+            $response = $this->modrinthClient->search($query, $limit, $offset);
 
-            return collect($response['hits'] ?? []);
+            return [
+                'hits' => collect($response['hits'] ?? []),
+                'total' => $response['total_hits'] ?? 0,
+            ];
         } catch (\Exception $e) {
             report($e);
 
-            return collect();
+            return ['hits' => collect(), 'total' => 0];
         }
     }
 
-    private function searchCurseForge(string $query, int $limit): Collection
+    /**
+     * @return array{hits: Collection, total: int}
+     */
+    private function searchCurseForge(string $query, int $limit, int $offset = 0): array
     {
         try {
-            $response = $this->curseForgeClient->search($query, $limit);
+            $response = $this->curseForgeClient->search($query, $limit, $offset);
 
-            return collect($response['data'] ?? []);
+            return [
+                'hits' => collect($response['data'] ?? []),
+                'total' => $response['pagination']['totalCount'] ?? 0,
+            ];
         } catch (\Exception $e) {
             report($e);
 
-            return collect();
+            return ['hits' => collect(), 'total' => 0];
         }
     }
 
