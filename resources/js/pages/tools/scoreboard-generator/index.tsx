@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { OutputPanel, ToolLayout } from '@/components/tool-layout';
 import { CheckIcon, CopyIcon, TrashIcon } from 'lucide-react';
 import {
     criteriaCategories,
@@ -201,7 +202,7 @@ export default function ScoreboardGenerator() {
         setGeneratedCommand(command);
     };
 
-    const copyToClipboard = async () => {
+    const copyCommand = async () => {
         try {
             await navigator.clipboard.writeText(generatedCommand);
             setCopied(true);
@@ -235,18 +236,78 @@ export default function ScoreboardGenerator() {
         }
     };
 
+    const sidebar = (
+        <>
+            <OutputPanel
+                title="Generated Command"
+                actions={
+                    <Button onClick={copyCommand} variant="ghost" size="sm" disabled={copied}>
+                        {copied ? (
+                            <>
+                                <CheckIcon className="mr-1 size-3" />
+                                Copied
+                            </>
+                        ) : (
+                            <>
+                                <CopyIcon className="mr-1 size-3" />
+                                Copy
+                            </>
+                        )}
+                    </Button>
+                }
+            >
+                <div className="overflow-x-auto rounded-lg border bg-muted/50 p-3">
+                    <code className="block break-all font-mono text-xs">
+                        {generatedCommand || 'Configure command above to generate...'}
+                    </code>
+                </div>
+                {generatedCommand && (
+                    <Button onClick={addToHistory} variant="outline" className="w-full">
+                        Add to History
+                    </Button>
+                )}
+            </OutputPanel>
+
+            {commandHistory.length > 0 && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Command History</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                        <div className="max-h-64 space-y-2 overflow-y-auto">
+                            {commandHistory.map((cmd, index) => (
+                                <div
+                                    key={index}
+                                    className="rounded-lg border bg-muted/30 p-2 font-mono text-xs break-all"
+                                >
+                                    {cmd}
+                                </div>
+                            ))}
+                        </div>
+                        <div className="flex gap-2">
+                            <Button onClick={copyAllCommands} variant="outline" className="flex-1">
+                                <CopyIcon className="mr-2 size-4" />
+                                Copy All
+                            </Button>
+                            <Button onClick={clearHistory} variant="outline" className="flex-1">
+                                <TrashIcon className="mr-2 size-4" />
+                                Clear
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+        </>
+    );
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Scoreboard Generator" />
-            <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto p-4">
-                <div className="flex flex-col gap-2">
-                    <h1 className="text-3xl font-bold">Minecraft Scoreboard Generator</h1>
-                    <p className="text-muted-foreground">
-                        Generate scoreboard commands for Minecraft with an easy-to-use interface
-                    </p>
-                </div>
-
-                <div className="grid gap-6 md:grid-cols-2">
+            <ToolLayout
+                title="Minecraft Scoreboard Generator"
+                description="Generate scoreboard commands for Minecraft with an easy-to-use interface"
+                sidebar={sidebar}
+            >
                     <Card>
                         <CardHeader>
                             <CardTitle>Command Builder</CardTitle>
@@ -547,92 +608,7 @@ export default function ScoreboardGenerator() {
                             </Button>
                         </CardContent>
                     </Card>
-
-                    <div className="flex flex-col gap-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Generated Command</CardTitle>
-                                <CardDescription>Copy and use in Minecraft</CardDescription>
-                            </CardHeader>
-                            <CardContent className="flex flex-col gap-4">
-                                <Textarea
-                                    value={generatedCommand}
-                                    readOnly
-                                    className="min-h-24 font-mono text-sm"
-                                    placeholder="Your generated command will appear here..."
-                                />
-                                <div className="flex gap-2">
-                                    <Button
-                                        onClick={copyToClipboard}
-                                        disabled={!generatedCommand}
-                                        variant="outline"
-                                        className="flex-1"
-                                    >
-                                        {copied ? (
-                                            <>
-                                                <CheckIcon className="mr-2 size-4" />
-                                                Copied!
-                                            </>
-                                        ) : (
-                                            <>
-                                                <CopyIcon className="mr-2 size-4" />
-                                                Copy
-                                            </>
-                                        )}
-                                    </Button>
-                                    <Button
-                                        onClick={addToHistory}
-                                        disabled={!generatedCommand || generatedCommand.startsWith('Please provide')}
-                                        variant="outline"
-                                        className="flex-1"
-                                    >
-                                        Add to Batch
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {commandHistory.length > 0 && (
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Command Batch</CardTitle>
-                                    <CardDescription>Multiple commands ready to use</CardDescription>
-                                </CardHeader>
-                                <CardContent className="flex flex-col gap-4">
-                                    <div className="flex max-h-64 flex-col gap-2 overflow-y-auto rounded-md border p-2">
-                                        {commandHistory.map((cmd, index) => (
-                                            <div
-                                                key={index}
-                                                className="flex items-start gap-2 rounded-md bg-muted p-2 font-mono text-xs"
-                                            >
-                                                <span className="flex-1 break-all">{cmd}</span>
-                                                <Button
-                                                    size="icon"
-                                                    variant="ghost"
-                                                    className="size-6 shrink-0"
-                                                    onClick={() => removeFromHistory(index)}
-                                                >
-                                                    <TrashIcon className="size-3" />
-                                                </Button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <Button onClick={copyAllCommands} variant="outline" className="flex-1">
-                                            <CopyIcon className="mr-2 size-4" />
-                                            Copy All
-                                        </Button>
-                                        <Button onClick={clearHistory} variant="outline" className="flex-1">
-                                            <TrashIcon className="mr-2 size-4" />
-                                            Clear
-                                        </Button>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        )}
-                    </div>
-                </div>
-            </div>
+            </ToolLayout>
         </AppLayout>
     );
 }

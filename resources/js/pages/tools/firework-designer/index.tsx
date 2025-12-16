@@ -12,6 +12,7 @@ import type { BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import { Check, Copy, RotateCcw, Sparkles } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { OutputPanel, ToolLayout } from '@/components/tool-layout';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -129,26 +130,229 @@ export default function FireworkDesigner() {
 
     const selectedShape = fireworkShapes.find((s) => s.id === shape);
 
+    const sidebar = (
+        <>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Preview</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="relative flex min-h-64 items-center justify-center overflow-hidden rounded-lg border bg-gradient-to-br from-slate-900 to-slate-950 p-8">
+                        <button
+                            type="button"
+                            onClick={triggerExplosion}
+                            className="group relative z-10"
+                        >
+                            <Sparkles className="size-12 text-muted-foreground transition-all group-hover:scale-110 group-hover:text-primary" />
+                            <span className="mt-2 block text-xs text-muted-foreground">
+                                Click to preview
+                            </span>
+                        </button>
+
+                        {isExploding && (
+                            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                                {primaryColors.map((colorId, index) => {
+                                    const color = minecraftColors.find(
+                                        (c) => c.id === colorId
+                                    );
+                                    const angle = (360 / primaryColors.length) * index;
+                                    const rotation = angle + Math.random() * 30 - 15;
+
+                                    return (
+                                        <div
+                                            key={`${colorId}-${index}`}
+                                            className="absolute animate-[ping_1.5s_ease-out]"
+                                            style={{
+                                                transform: `rotate(${rotation}deg)`,
+                                            }}
+                                        >
+                                            <div
+                                                className="size-3 rounded-full"
+                                                style={{
+                                                    backgroundColor: color?.hex,
+                                                    boxShadow: `0 0 20px ${color?.hex}`,
+                                                }}
+                                            />
+                                        </div>
+                                    );
+                                })}
+
+                                {shape === 'star' && (
+                                    <div className="absolute animate-[spin_1.5s_ease-out]">
+                                        {[...Array(5)].map((_, i) => {
+                                            const angle = (360 / 5) * i;
+                                            return (
+                                                <div
+                                                    key={i}
+                                                    className="absolute h-16 w-1 origin-bottom bg-gradient-to-t from-yellow-400 to-transparent"
+                                                    style={{
+                                                        transform: `rotate(${angle}deg) translateY(-32px)`,
+                                                    }}
+                                                />
+                                            );
+                                        })}
+                                    </div>
+                                )}
+
+                                {enabledEffects.includes('trail') && (
+                                    <div className="absolute inset-0 animate-[fadeIn_1.5s_ease-out]">
+                                        {[...Array(20)].map((_, i) => {
+                                            const angle = (360 / 20) * i;
+                                            return (
+                                                <div
+                                                    key={i}
+                                                    className="absolute left-1/2 top-1/2 h-1 w-12 origin-left bg-gradient-to-r from-white to-transparent opacity-50"
+                                                    style={{
+                                                        transform: `rotate(${angle}deg)`,
+                                                    }}
+                                                />
+                                            );
+                                        })}
+                                    </div>
+                                )}
+
+                                {enabledEffects.includes('twinkle') && (
+                                    <div className="absolute inset-0 animate-[pulse_0.5s_ease-in-out_infinite]">
+                                        {[...Array(12)].map((_, i) => {
+                                            const angle = (360 / 12) * i;
+                                            const radius = 60 + Math.random() * 40;
+                                            const x = Math.cos((angle * Math.PI) / 180) * radius;
+                                            const y = Math.sin((angle * Math.PI) / 180) * radius;
+
+                                            return (
+                                                <div
+                                                    key={i}
+                                                    className="absolute left-1/2 top-1/2 size-1 rounded-full bg-white"
+                                                    style={{
+                                                        transform: `translate(${x}px, ${y}px)`,
+                                                        animation: `twinkle 0.${3 + i}s ease-in-out infinite`,
+                                                    }}
+                                                />
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Recipe</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm">
+                    <div>
+                        <strong className="text-foreground">Base Materials:</strong>
+                        <ul className="ml-4 mt-1 list-disc text-muted-foreground">
+                            <li>1 Paper</li>
+                            <li>
+                                {flightDuration} Gunpowder (Flight Duration: {flightDuration})
+                            </li>
+                        </ul>
+                    </div>
+                    <Separator />
+                    <div>
+                        <strong className="text-foreground">Firework Star:</strong>
+                        <ul className="ml-4 mt-1 list-disc text-muted-foreground">
+                            <li>1 Gunpowder</li>
+                            {selectedShape?.ingredient && (
+                                <li>
+                                    1 {selectedShape.ingredient} ({selectedShape.name})
+                                </li>
+                            )}
+                            {primaryColors.length > 0 && (
+                                <li>
+                                    {primaryColors.length} Dye
+                                    {primaryColors.length !== 1 ? 's' : ''} (
+                                    {primaryColors
+                                        .map(
+                                            (id) =>
+                                                minecraftColors.find((c) => c.id === id)
+                                                    ?.name
+                                        )
+                                        .join(', ')}
+                                    )
+                                </li>
+                            )}
+                            {fadeColors.length > 0 && (
+                                <li>
+                                    {fadeColors.length} Fade Dye
+                                    {fadeColors.length !== 1 ? 's' : ''} (
+                                    {fadeColors
+                                        .map(
+                                            (id) =>
+                                                minecraftColors.find((c) => c.id === id)
+                                                    ?.name
+                                        )
+                                        .join(', ')}
+                                    )
+                                </li>
+                            )}
+                            {enabledEffects.map((effectId) => {
+                                const effect = fireworkEffects.find(
+                                    (e) => e.id === effectId
+                                );
+                                return (
+                                    <li key={effectId}>
+                                        1 {effect?.ingredient} ({effect?.name})
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <OutputPanel
+                title="Command"
+                actions={
+                    <Button onClick={reset} variant="ghost" size="sm">
+                        <RotateCcw className="mr-2 size-4" />
+                        Reset
+                    </Button>
+                }
+            >
+                <div className="overflow-x-auto rounded-lg border bg-muted/50 p-3">
+                    <code className="block break-all font-mono text-xs">
+                        {generateCommand()}
+                    </code>
+                </div>
+
+                <Button
+                    onClick={copyCommand}
+                    className="w-full"
+                    disabled={copied || primaryColors.length === 0}
+                >
+                    {copied ? (
+                        <>
+                            <Check className="mr-2 size-4" />
+                            Copied!
+                        </>
+                    ) : (
+                        <>
+                            <Copy className="mr-2 size-4" />
+                            Copy
+                        </>
+                    )}
+                </Button>
+            </OutputPanel>
+        </>
+    );
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Firework Designer" />
-
-            <div className="mx-auto max-w-screen-2xl p-4 sm:p-6">
-                <div className="mb-6 space-y-2">
-                    <h1 className="text-3xl font-bold tracking-tight">
-                        Minecraft Firework Designer
-                    </h1>
-                    <p className="text-base text-muted-foreground">
-                        Create custom firework rockets with colors, effects, and flight duration
-                    </p>
-                </div>
-
-                <div className="grid gap-6 lg:grid-cols-[1fr,400px]">
-                    <div className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Firework Shape</CardTitle>
-                            </CardHeader>
+            <ToolLayout
+                title="Minecraft Firework Designer"
+                description="Create custom firework rockets with colors, effects, and flight duration"
+                sidebar={sidebar}
+            >
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Firework Shape</CardTitle>
+                    </CardHeader>
                             <CardContent>
                                 <RadioGroup value={shape} onValueChange={setShape}>
                                     <div className="grid gap-3 sm:grid-cols-2">
@@ -318,280 +522,9 @@ export default function FireworkDesigner() {
                                         <span>Long</span>
                                     </div>
                                 </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    <div className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Preview</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="relative flex min-h-64 items-center justify-center overflow-hidden rounded-lg border bg-gradient-to-br from-slate-900 to-slate-950 p-8">
-                                    <button
-                                        type="button"
-                                        onClick={triggerExplosion}
-                                        className="group relative z-10"
-                                    >
-                                        <Sparkles className="size-12 text-muted-foreground transition-all group-hover:scale-110 group-hover:text-primary" />
-                                        <span className="mt-2 block text-xs text-muted-foreground">
-                                            Click to preview
-                                        </span>
-                                    </button>
-
-                                    {isExploding && (
-                                        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                                            {primaryColors.map((colorId, index) => {
-                                                const color = minecraftColors.find(
-                                                    (c) => c.id === colorId
-                                                );
-                                                const angle = (360 / primaryColors.length) * index;
-                                                const rotation = angle + Math.random() * 30 - 15;
-
-                                                return (
-                                                    <div
-                                                        key={`${colorId}-${index}`}
-                                                        className="absolute animate-[ping_1.5s_ease-out]"
-                                                        style={{
-                                                            transform: `rotate(${rotation}deg)`,
-                                                        }}
-                                                    >
-                                                        <div
-                                                            className="size-3 rounded-full"
-                                                            style={{
-                                                                backgroundColor: color?.hex,
-                                                                boxShadow: `0 0 20px ${color?.hex}`,
-                                                            }}
-                                                        />
-                                                    </div>
-                                                );
-                                            })}
-
-                                            {shape === 'star' && (
-                                                <div className="absolute animate-[spin_1.5s_ease-out]">
-                                                    {[...Array(5)].map((_, i) => {
-                                                        const angle = (360 / 5) * i;
-                                                        return (
-                                                            <div
-                                                                key={i}
-                                                                className="absolute h-16 w-1 origin-bottom bg-gradient-to-t from-yellow-400 to-transparent"
-                                                                style={{
-                                                                    transform: `rotate(${angle}deg) translateY(-32px)`,
-                                                                }}
-                                                            />
-                                                        );
-                                                    })}
-                                                </div>
-                                            )}
-
-                                            {enabledEffects.includes('trail') && (
-                                                <div className="absolute inset-0 animate-[fadeIn_1.5s_ease-out]">
-                                                    {[...Array(20)].map((_, i) => {
-                                                        const angle = (360 / 20) * i;
-                                                        return (
-                                                            <div
-                                                                key={i}
-                                                                className="absolute left-1/2 top-1/2 h-1 w-12 origin-left bg-gradient-to-r from-white to-transparent opacity-50"
-                                                                style={{
-                                                                    transform: `rotate(${angle}deg)`,
-                                                                }}
-                                                            />
-                                                        );
-                                                    })}
-                                                </div>
-                                            )}
-
-                                            {enabledEffects.includes('twinkle') && (
-                                                <div className="absolute inset-0 animate-[pulse_0.5s_ease-in-out_infinite]">
-                                                    {[...Array(12)].map((_, i) => {
-                                                        const angle = (360 / 12) * i;
-                                                        const radius = 60 + Math.random() * 40;
-                                                        const x = Math.cos((angle * Math.PI) / 180) * radius;
-                                                        const y = Math.sin((angle * Math.PI) / 180) * radius;
-
-                                                        return (
-                                                            <div
-                                                                key={i}
-                                                                className="absolute left-1/2 top-1/2 size-1 rounded-full bg-white"
-                                                                style={{
-                                                                    transform: `translate(${x}px, ${y}px)`,
-                                                                    animation: `twinkle 0.${3 + i}s ease-in-out infinite`,
-                                                                }}
-                                                            />
-                                                        );
-                                                    })}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Recipe</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-3 text-sm">
-                                <div>
-                                    <strong className="text-foreground">Base Materials:</strong>
-                                    <ul className="ml-4 mt-1 list-disc text-muted-foreground">
-                                        <li>1 Paper</li>
-                                        <li>
-                                            {flightDuration} Gunpowder (Flight Duration: {flightDuration})
-                                        </li>
-                                    </ul>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <strong className="text-foreground">Firework Star:</strong>
-                                    <ul className="ml-4 mt-1 list-disc text-muted-foreground">
-                                        <li>1 Gunpowder</li>
-                                        {selectedShape?.ingredient && (
-                                            <li>
-                                                1 {selectedShape.ingredient} ({selectedShape.name})
-                                            </li>
-                                        )}
-                                        {primaryColors.length > 0 && (
-                                            <li>
-                                                {primaryColors.length} Dye
-                                                {primaryColors.length !== 1 ? 's' : ''} (
-                                                {primaryColors
-                                                    .map(
-                                                        (id) =>
-                                                            minecraftColors.find((c) => c.id === id)
-                                                                ?.name
-                                                    )
-                                                    .join(', ')}
-                                                )
-                                            </li>
-                                        )}
-                                        {fadeColors.length > 0 && (
-                                            <li>
-                                                {fadeColors.length} Fade Dye
-                                                {fadeColors.length !== 1 ? 's' : ''} (
-                                                {fadeColors
-                                                    .map(
-                                                        (id) =>
-                                                            minecraftColors.find((c) => c.id === id)
-                                                                ?.name
-                                                    )
-                                                    .join(', ')}
-                                                )
-                                            </li>
-                                        )}
-                                        {enabledEffects.map((effectId) => {
-                                            const effect = fireworkEffects.find(
-                                                (e) => e.id === effectId
-                                            );
-                                            return (
-                                                <li key={effectId}>
-                                                    1 {effect?.ingredient} ({effect?.name})
-                                                </li>
-                                            );
-                                        })}
-                                    </ul>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Command</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="overflow-x-auto rounded-lg border bg-muted/50 p-3">
-                                    <code className="block break-all font-mono text-xs">
-                                        {generateCommand()}
-                                    </code>
-                                </div>
-
-                                <div className="flex gap-2">
-                                    <Button
-                                        onClick={copyCommand}
-                                        className="flex-1"
-                                        disabled={copied || primaryColors.length === 0}
-                                    >
-                                        {copied ? (
-                                            <>
-                                                <Check className="mr-2 size-4" />
-                                                Copied!
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Copy className="mr-2 size-4" />
-                                                Copy
-                                            </>
-                                        )}
-                                    </Button>
-                                    <Button onClick={reset} variant="outline" className="flex-1">
-                                        <RotateCcw className="mr-2 size-4" />
-                                        Reset
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>How to Use</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-3 text-sm text-muted-foreground">
-                                <div>
-                                    <strong className="text-foreground">1. Choose a shape</strong>
-                                    <p>Select the explosion pattern for your firework.</p>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <strong className="text-foreground">
-                                        2. Select primary colors
-                                    </strong>
-                                    <p>
-                                        Pick one or more colors for the firework explosion. You can
-                                        combine multiple colors.
-                                    </p>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <strong className="text-foreground">
-                                        3. Add fade colors (optional)
-                                    </strong>
-                                    <p>
-                                        Choose colors that the firework will fade into after the
-                                        initial explosion.
-                                    </p>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <strong className="text-foreground">
-                                        4. Enable special effects
-                                    </strong>
-                                    <p>Add trail or twinkle effects to your firework.</p>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <strong className="text-foreground">
-                                        5. Set flight duration
-                                    </strong>
-                                    <p>
-                                        Adjust how long the rocket flies before exploding (1-3
-                                        gunpowder).
-                                    </p>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <strong className="text-foreground">6. Copy and use</strong>
-                                    <p>
-                                        Copy the command and paste it into your Minecraft chat to
-                                        receive the firework rocket.
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
-            </div>
+                    </CardContent>
+                </Card>
+            </ToolLayout>
 
             <style>{`
                 @keyframes twinkle {

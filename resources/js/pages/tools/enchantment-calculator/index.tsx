@@ -36,6 +36,7 @@ import {
     Zap,
 } from 'lucide-react';
 import { useState } from 'react';
+import { ToolLayout } from '@/components/tool-layout';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -202,26 +203,204 @@ export default function EnchantmentCalculator() {
 
     const { steps, totalCost, isTooExpensive } = calculateOptimalCombining();
 
+    const sidebar = selectedEnchantments.length > 0 ? (
+        <>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <CheckCircle2 className="size-5" />
+                        XP Cost Summary
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-4">
+                    <div className="flex items-center justify-between rounded-lg border p-4">
+                        <span className="text-lg font-semibold">
+                            Total XP Levels Needed
+                        </span>
+                        <span
+                            className={`text-2xl font-bold ${
+                                isTooExpensive
+                                    ? 'text-red-600 dark:text-red-400'
+                                    : 'text-green-700 dark:text-green-400'
+                            }`}
+                        >
+                            {totalCost}
+                        </span>
+                    </div>
+
+                    {isTooExpensive && (
+                        <div className="flex items-start gap-3 rounded-lg border border-red-500/20 bg-red-500/10 p-4">
+                            <AlertTriangle className="size-5 shrink-0 text-red-700 dark:text-red-400" />
+                            <div className="flex flex-col gap-1">
+                                <h3 className="font-semibold text-red-700 dark:text-red-400">
+                                    Too Expensive!
+                                </h3>
+                                <p className="text-sm text-muted-foreground">
+                                    One or more anvil operations exceed
+                                    39 levels. This combination cannot be
+                                    made in survival Minecraft.
+                                </p>
+                            </div>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Combining Order</CardTitle>
+                    <CardDescription>
+                        Follow these steps to minimize XP cost
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex flex-col gap-3">
+                        {steps.map((step, index) => {
+                            const isTooExpensiveStep = step.cost > 39;
+
+                            return (
+                                <div
+                                    key={index}
+                                    className={`flex flex-col gap-2 rounded-lg border p-4 ${
+                                        isTooExpensiveStep
+                                            ? 'border-red-500/20 bg-red-500/5'
+                                            : 'bg-card'
+                                    }`}
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm font-semibold text-muted-foreground">
+                                            Step {index + 1}
+                                        </span>
+                                        <span
+                                            className={`text-lg font-bold ${
+                                                isTooExpensiveStep
+                                                    ? 'text-red-600 dark:text-red-400'
+                                                    : 'text-green-700 dark:text-green-400'
+                                            }`}
+                                        >
+                                            {step.cost} levels
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-sm">
+                                        <span className="font-medium">
+                                            {step.item1}
+                                        </span>
+                                        <span className="text-muted-foreground">
+                                            +
+                                        </span>
+                                        <span className="font-medium">
+                                            {step.item2}
+                                        </span>
+                                        <span className="text-muted-foreground">
+                                            →
+                                        </span>
+                                        <span className="font-medium">
+                                            {step.result}
+                                        </span>
+                                    </div>
+                                    {(step.priorWork1 > 0 ||
+                                        step.priorWork2 > 0) && (
+                                        <div className="text-xs text-muted-foreground">
+                                            Prior work penalty:{' '}
+                                            {calculatePriorWorkPenalty(
+                                                step.priorWork1,
+                                            ) +
+                                                calculatePriorWorkPenalty(
+                                                    step.priorWork2,
+                                                )}{' '}
+                                            levels
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </CardContent>
+            </Card>
+        </>
+    ) : (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <Info className="size-5" />
+                    Get Started
+                </CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-4">
+                <div className="flex items-start gap-3">
+                    <AlertCircle className="size-5 shrink-0 text-blue-600 dark:text-blue-400" />
+                    <div className="flex flex-col gap-1">
+                        <h4 className="font-semibold">
+                            How to use this calculator
+                        </h4>
+                        <p className="text-sm text-muted-foreground">
+                            Select an item type and add enchantments to
+                            see the optimal combining order and total XP
+                            cost.
+                        </p>
+                    </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                    <AlertCircle className="size-5 shrink-0 text-blue-600 dark:text-blue-400" />
+                    <div className="flex flex-col gap-1">
+                        <h4 className="font-semibold">
+                            Anvil Mechanics
+                        </h4>
+                        <p className="text-sm text-muted-foreground">
+                            Each time an item is used in an anvil, it
+                            gains a prior work penalty. This calculator
+                            helps you minimize this penalty by showing
+                            the optimal order to combine enchantments.
+                        </p>
+                    </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                    <AlertCircle className="size-5 shrink-0 text-blue-600 dark:text-blue-400" />
+                    <div className="flex flex-col gap-1">
+                        <h4 className="font-semibold">
+                            Level Limit
+                        </h4>
+                        <p className="text-sm text-muted-foreground">
+                            In survival Minecraft, anvil operations that
+                            cost more than 39 levels will show "Too
+                            Expensive!" and cannot be completed.
+                        </p>
+                    </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                    <AlertCircle className="size-5 shrink-0 text-blue-600 dark:text-blue-400" />
+                    <div className="flex flex-col gap-1">
+                        <h4 className="font-semibold">
+                            Incompatible Enchantments
+                        </h4>
+                        <p className="text-sm text-muted-foreground">
+                            Some enchantments cannot be combined (e.g.,
+                            Sharpness and Smite). The calculator will
+                            only show compatible enchantments.
+                        </p>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    );
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Enchantment Calculator" />
-            <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto p-4 md:p-6">
-                <div className="flex flex-col gap-2">
-                    <h1 className="text-3xl font-bold">Enchantment Calculator</h1>
-                    <p className="text-muted-foreground">
-                        Calculate optimal anvil combining order and XP costs for
-                        enchantments
-                    </p>
-                </div>
-
-                <div className="grid gap-6 lg:grid-cols-2">
-                    <div className="flex flex-col gap-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Sparkles className="size-5" />
-                                    Select Item
-                                </CardTitle>
+            <ToolLayout
+                title="Enchantment Calculator"
+                description="Calculate optimal anvil combining order and XP costs for enchantments"
+                sidebar={sidebar}
+            >
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Sparkles className="size-5" />
+                            Select Item
+                        </CardTitle>
                                 <CardDescription>
                                     Choose the item type to enchant
                                 </CardDescription>
@@ -389,197 +568,9 @@ export default function EnchantmentCalculator() {
                                         })}
                                     </div>
                                 </CardContent>
-                            </Card>
-                        )}
-                    </div>
-
-                    <div className="flex flex-col gap-6">
-                        {selectedEnchantments.length > 0 ? (
-                            <>
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle className="flex items-center gap-2">
-                                            <CheckCircle2 className="size-5" />
-                                            XP Cost Summary
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="flex flex-col gap-4">
-                                        <div className="flex items-center justify-between rounded-lg border p-4">
-                                            <span className="text-lg font-semibold">
-                                                Total XP Levels Needed
-                                            </span>
-                                            <span
-                                                className={`text-2xl font-bold ${
-                                                    isTooExpensive
-                                                        ? 'text-red-600 dark:text-red-400'
-                                                        : 'text-green-700 dark:text-green-400'
-                                                }`}
-                                            >
-                                                {totalCost}
-                                            </span>
-                                        </div>
-
-                                        {isTooExpensive && (
-                                            <div className="flex items-start gap-3 rounded-lg border border-red-500/20 bg-red-500/10 p-4">
-                                                <AlertTriangle className="size-5 shrink-0 text-red-700 dark:text-red-400" />
-                                                <div className="flex flex-col gap-1">
-                                                    <h3 className="font-semibold text-red-700 dark:text-red-400">
-                                                        Too Expensive!
-                                                    </h3>
-                                                    <p className="text-sm text-muted-foreground">
-                                                        One or more anvil operations exceed
-                                                        39 levels. This combination cannot be
-                                                        made in survival Minecraft.
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </CardContent>
-                                </Card>
-
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle>Combining Order</CardTitle>
-                                        <CardDescription>
-                                            Follow these steps to minimize XP cost
-                                        </CardDescription>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="flex flex-col gap-3">
-                                            {steps.map((step, index) => {
-                                                const isTooExpensiveStep = step.cost > 39;
-
-                                                return (
-                                                    <div
-                                                        key={index}
-                                                        className={`flex flex-col gap-2 rounded-lg border p-4 ${
-                                                            isTooExpensiveStep
-                                                                ? 'border-red-500/20 bg-red-500/5'
-                                                                : 'bg-card'
-                                                        }`}
-                                                    >
-                                                        <div className="flex items-center justify-between">
-                                                            <span className="text-sm font-semibold text-muted-foreground">
-                                                                Step {index + 1}
-                                                            </span>
-                                                            <span
-                                                                className={`text-lg font-bold ${
-                                                                    isTooExpensiveStep
-                                                                        ? 'text-red-600 dark:text-red-400'
-                                                                        : 'text-green-700 dark:text-green-400'
-                                                                }`}
-                                                            >
-                                                                {step.cost} levels
-                                                            </span>
-                                                        </div>
-                                                        <div className="flex items-center gap-2 text-sm">
-                                                            <span className="font-medium">
-                                                                {step.item1}
-                                                            </span>
-                                                            <span className="text-muted-foreground">
-                                                                +
-                                                            </span>
-                                                            <span className="font-medium">
-                                                                {step.item2}
-                                                            </span>
-                                                            <span className="text-muted-foreground">
-                                                                →
-                                                            </span>
-                                                            <span className="font-medium">
-                                                                {step.result}
-                                                            </span>
-                                                        </div>
-                                                        {(step.priorWork1 > 0 ||
-                                                            step.priorWork2 > 0) && (
-                                                            <div className="text-xs text-muted-foreground">
-                                                                Prior work penalty:{' '}
-                                                                {calculatePriorWorkPenalty(
-                                                                    step.priorWork1,
-                                                                ) +
-                                                                    calculatePriorWorkPenalty(
-                                                                        step.priorWork2,
-                                                                    )}{' '}
-                                                                levels
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </>
-                        ) : (
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2">
-                                        <Info className="size-5" />
-                                        Get Started
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="flex flex-col gap-4">
-                                    <div className="flex items-start gap-3">
-                                        <AlertCircle className="size-5 shrink-0 text-blue-600 dark:text-blue-400" />
-                                        <div className="flex flex-col gap-1">
-                                            <h4 className="font-semibold">
-                                                How to use this calculator
-                                            </h4>
-                                            <p className="text-sm text-muted-foreground">
-                                                Select an item type and add enchantments to
-                                                see the optimal combining order and total XP
-                                                cost.
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-start gap-3">
-                                        <AlertCircle className="size-5 shrink-0 text-blue-600 dark:text-blue-400" />
-                                        <div className="flex flex-col gap-1">
-                                            <h4 className="font-semibold">
-                                                Anvil Mechanics
-                                            </h4>
-                                            <p className="text-sm text-muted-foreground">
-                                                Each time an item is used in an anvil, it
-                                                gains a prior work penalty. This calculator
-                                                helps you minimize this penalty by showing
-                                                the optimal order to combine enchantments.
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-start gap-3">
-                                        <AlertCircle className="size-5 shrink-0 text-blue-600 dark:text-blue-400" />
-                                        <div className="flex flex-col gap-1">
-                                            <h4 className="font-semibold">
-                                                Level Limit
-                                            </h4>
-                                            <p className="text-sm text-muted-foreground">
-                                                In survival Minecraft, anvil operations that
-                                                cost more than 39 levels will show "Too
-                                                Expensive!" and cannot be completed.
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-start gap-3">
-                                        <AlertCircle className="size-5 shrink-0 text-blue-600 dark:text-blue-400" />
-                                        <div className="flex flex-col gap-1">
-                                            <h4 className="font-semibold">
-                                                Incompatible Enchantments
-                                            </h4>
-                                            <p className="text-sm text-muted-foreground">
-                                                Some enchantments cannot be combined (e.g.,
-                                                Sharpness and Smite). The calculator will
-                                                only show compatible enchantments.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        )}
-                    </div>
-                </div>
-            </div>
+                    </Card>
+                )}
+            </ToolLayout>
         </AppLayout>
     );
 }

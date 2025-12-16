@@ -16,6 +16,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { OutputPanel, ToolLayout } from '@/components/tool-layout';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
@@ -185,22 +186,141 @@ export default function SkinViewerIndex() {
         document.body.removeChild(link);
     };
 
+    const sidebar = (
+        <>
+            {!isSearching && currentUsername && (
+                <OutputPanel
+                    title="Rendered Skin"
+                    actions={
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleDownloadSkin}
+                        >
+                            <Download className="mr-1 size-3" />
+                            Download
+                        </Button>
+                    }
+                >
+                    <div className="flex flex-col items-center gap-3">
+                        <div className="rounded-lg border bg-[oklch(0.87_0.04_85)] p-6 dark:bg-[oklch(0.23_0.02_85)]">
+                            <img
+                                src={getRenderUrl(viewMode, currentUsername, size)}
+                                alt={`${currentUsername}'s skin`}
+                                className="block"
+                                style={{ imageRendering: 'pixelated' }}
+                            />
+                        </div>
+                        <div className="w-full space-y-1 text-center">
+                            <p className="font-semibold">{currentUsername}</p>
+                            <p className="text-xs text-muted-foreground">
+                                {VIEW_MODES.find((m) => m.value === viewMode)?.label} -{' '}
+                                {size}x{size}px
+                            </p>
+                        </div>
+                    </div>
+                </OutputPanel>
+            )}
+
+            {/* Display Options */}
+            {!isSearching && currentUsername && (
+                <Card>
+                    <CardHeader className="pb-3">
+                        <CardTitle className="text-base flex items-center gap-2">
+                            <ImageIcon className="size-4" />
+                            Display Options
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-medium">View Mode</label>
+                            <Select
+                                value={viewMode}
+                                onValueChange={(value: ViewMode) => setViewMode(value)}
+                            >
+                                <SelectTrigger className="h-9">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {VIEW_MODES.map((mode) => (
+                                        <SelectItem key={mode.value} value={mode.value}>
+                                            {mode.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-medium">Size</label>
+                            <Select
+                                value={size.toString()}
+                                onValueChange={(value) =>
+                                    setSize(parseInt(value) as SkinSize)
+                                }
+                            >
+                                <SelectTrigger className="h-9">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {SIZES.map((s) => (
+                                        <SelectItem key={s} value={s.toString()}>
+                                            {s}x{s}px
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Info Card */}
+            <Card>
+                <CardHeader className="pb-3">
+                    <CardTitle className="text-base">About Skins</CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-3 text-sm">
+                    <div className="flex gap-2">
+                        <AlertCircle className="size-4 shrink-0 text-primary" />
+                        <p className="text-muted-foreground">
+                            <strong className="text-foreground">64x64:</strong> Standard Minecraft skin texture size
+                        </p>
+                    </div>
+                    <div className="flex gap-2">
+                        <AlertCircle className="size-4 shrink-0 text-primary" />
+                        <p className="text-muted-foreground">
+                            <strong className="text-foreground">Layers:</strong> Skins support outer layers for accessories
+                        </p>
+                    </div>
+                    <div className="flex gap-2">
+                        <AlertCircle className="size-4 shrink-0 text-primary" />
+                        <p className="text-muted-foreground">
+                            <strong className="text-foreground">Format:</strong> PNG format with transparency support
+                        </p>
+                    </div>
+                </CardContent>
+            </Card>
+        </>
+    );
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Skin Viewer" />
-
-            <div className="mx-auto max-w-screen-2xl p-4 sm:p-6">
-                <div className="mb-6 space-y-2">
-                    <h1 className="text-3xl font-bold tracking-tight">
-                        Minecraft Skin Viewer
-                    </h1>
-                    <p className="text-base text-muted-foreground">
-                        View Minecraft player skins with different render modes
-                    </p>
-                </div>
-
+            <ToolLayout
+                title="Minecraft Skin Viewer"
+                description="View Minecraft player skins with different render modes"
+                sidebar={sidebar}
+                alerts={
+                    error && (
+                        <div className="flex items-center gap-2 rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
+                            <AlertCircle className="size-4" />
+                            {error}
+                        </div>
+                    )
+                }
+            >
                 {/* Search Form */}
-                <form onSubmit={handleSubmit} className="mb-8">
+                <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="flex flex-col gap-3 sm:flex-row">
                         <div className="relative flex-1">
                             <Search className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-muted-foreground" />
@@ -234,19 +354,9 @@ export default function SkinViewerIndex() {
                     </div>
                 </form>
 
-                {/* Error Message */}
-                {error && (
-                    <Card className="mb-8 border-destructive">
-                        <CardContent className="flex items-center gap-3 pt-6">
-                            <AlertCircle className="size-5 text-destructive" />
-                            <p className="text-sm text-destructive">{error}</p>
-                        </CardContent>
-                    </Card>
-                )}
-
                 {/* Loading State */}
                 {isSearching && (
-                    <Card className="mb-8">
+                    <Card>
                         <CardHeader>
                             <Skeleton className="h-6 w-48" />
                             <Skeleton className="h-4 w-64" />
@@ -257,157 +367,28 @@ export default function SkinViewerIndex() {
                     </Card>
                 )}
 
-                {/* Skin Viewer */}
+                {/* Raw Skin Texture */}
                 {!isSearching && currentUsername && (
-                    <div className="mb-8 space-y-4">
-                        {/* Controls */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <ImageIcon className="size-5" />
-                                    Display Options
-                                </CardTitle>
-                                <CardDescription>
-                                    Customize how the skin is rendered
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="grid gap-4 sm:grid-cols-2">
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium">
-                                            View Mode
-                                        </label>
-                                        <Select
-                                            value={viewMode}
-                                            onValueChange={(
-                                                value: ViewMode,
-                                            ) => setViewMode(value)}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {VIEW_MODES.map((mode) => (
-                                                    <SelectItem
-                                                        key={mode.value}
-                                                        value={mode.value}
-                                                    >
-                                                        <div className="flex flex-col">
-                                                            <span>
-                                                                {mode.label}
-                                                            </span>
-                                                            <span className="text-xs text-muted-foreground">
-                                                                {
-                                                                    mode.description
-                                                                }
-                                                            </span>
-                                                        </div>
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium">
-                                            Size
-                                        </label>
-                                        <Select
-                                            value={size.toString()}
-                                            onValueChange={(value) =>
-                                                setSize(
-                                                    parseInt(
-                                                        value,
-                                                    ) as SkinSize,
-                                                )
-                                            }
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {SIZES.map((s) => (
-                                                    <SelectItem
-                                                        key={s}
-                                                        value={s.toString()}
-                                                    >
-                                                        {s}x{s}px
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Raw Skin Texture</CardTitle>
+                            <CardDescription>
+                                The original skin texture file for {currentUsername}
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex justify-center">
+                                <div className="rounded-lg border bg-[oklch(0.87_0.04_85)] p-4 dark:bg-[oklch(0.23_0.02_85)]">
+                                    <img
+                                        src={getSkinUrl(currentUsername)}
+                                        alt={`${currentUsername}'s raw skin texture`}
+                                        className="block size-64"
+                                        style={{ imageRendering: 'pixelated' }}
+                                    />
                                 </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Rendered Skin Display */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <User className="size-5" />
-                                    {currentUsername}
-                                </CardTitle>
-                                <CardDescription>
-                                    {
-                                        VIEW_MODES.find(
-                                            (m) => m.value === viewMode,
-                                        )?.label
-                                    }{' '}
-                                    - {size}x{size}px
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="flex flex-col items-center justify-center space-y-6">
-                                    <div className="rounded-lg border bg-[oklch(0.87_0.04_85)] p-8 dark:bg-[oklch(0.23_0.02_85)]">
-                                        <img
-                                            src={getRenderUrl(
-                                                viewMode,
-                                                currentUsername,
-                                                size,
-                                            )}
-                                            alt={`${currentUsername}'s skin`}
-                                            className="block"
-                                            style={{
-                                                imageRendering: 'pixelated',
-                                            }}
-                                        />
-                                    </div>
-                                    <Button
-                                        onClick={handleDownloadSkin}
-                                        variant="outline"
-                                        size="lg"
-                                    >
-                                        <Download className="size-5" />
-                                        Download Skin Texture
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Raw Skin Texture */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Raw Skin Texture</CardTitle>
-                                <CardDescription>
-                                    The original skin texture file
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="flex justify-center">
-                                    <div className="rounded-lg border bg-[oklch(0.87_0.04_85)] p-4 dark:bg-[oklch(0.23_0.02_85)]">
-                                        <img
-                                            src={getSkinUrl(currentUsername)}
-                                            alt={`${currentUsername}'s raw skin texture`}
-                                            className="block size-64"
-                                            style={{
-                                                imageRendering: 'pixelated',
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
+                            </div>
+                        </CardContent>
+                    </Card>
                 )}
 
                 {/* Recent Searches */}
@@ -458,7 +439,7 @@ export default function SkinViewerIndex() {
                     !currentUsername &&
                     !error &&
                     history.length === 0 && (
-                        <div className="mt-16 flex flex-col items-center justify-center space-y-4 py-12">
+                        <div className="mt-8 flex flex-col items-center justify-center space-y-4 py-12">
                             <div className="flex size-20 items-center justify-center rounded-full bg-muted/50">
                                 <User className="size-10 text-muted-foreground" />
                             </div>
@@ -473,7 +454,7 @@ export default function SkinViewerIndex() {
                             </div>
                         </div>
                     )}
-            </div>
+            </ToolLayout>
         </AppLayout>
     );
 }

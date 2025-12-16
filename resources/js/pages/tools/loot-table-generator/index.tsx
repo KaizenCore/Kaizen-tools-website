@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
+import { OutputPanel, ToolLayout } from '@/components/tool-layout';
 import {
     lootTableTypes,
     minecraftItems,
@@ -389,23 +390,173 @@ export default function LootTableGenerator() {
 
     const validationErrors = getValidationErrors();
 
+    const sidebar = (
+        <>
+            <Card>
+                <CardHeader className="pb-3">
+                    <CardTitle className="text-base">Load Preset</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex flex-col gap-2">
+                        {lootTablePresets.map((preset) => (
+                            <button
+                                key={preset.id}
+                                type="button"
+                                onClick={() =>
+                                    loadPreset(preset.id)
+                                }
+                                className="w-full rounded-lg border p-3 text-left transition-all hover:border-primary hover:bg-accent"
+                            >
+                                <div className="font-medium">
+                                    {preset.name}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                    {preset.description}
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
+
+            <OutputPanel
+                title="JSON Preview"
+                actions={
+                    <>
+                        <Button
+                            onClick={copyJSON}
+                            variant="ghost"
+                            size="sm"
+                            disabled={
+                                validationErrors.length > 0 ||
+                                copied
+                            }
+                        >
+                            {copied ? (
+                                <>
+                                    <Check className="mr-1 size-3" />
+                                    Copied
+                                </>
+                            ) : (
+                                <>
+                                    <Copy className="mr-1 size-3" />
+                                    Copy
+                                </>
+                            )}
+                        </Button>
+                        <Button
+                            onClick={downloadJSON}
+                            variant="ghost"
+                            size="sm"
+                            disabled={validationErrors.length > 0}
+                        >
+                            <Download className="mr-1 size-3" />
+                            Download
+                        </Button>
+                    </>
+                }
+            >
+                {validationErrors.length > 0 && (
+                    <div className="flex flex-col gap-2 rounded-lg border border-destructive bg-destructive/10 p-3">
+                        <div className="flex items-center gap-2 text-sm font-medium text-destructive">
+                            <AlertCircle className="size-4" />
+                            Validation Issues
+                        </div>
+                        <ul className="ml-6 list-disc text-xs text-destructive">
+                            {validationErrors.map(
+                                (error, index) => (
+                                    <li key={index}>{error}</li>
+                                ),
+                            )}
+                        </ul>
+                    </div>
+                )}
+
+                <div className="max-h-96 overflow-auto rounded-lg border bg-muted/50 p-3">
+                    <pre className="font-mono text-xs">
+                        {generateJSON()}
+                    </pre>
+                </div>
+
+                <Button
+                    onClick={reset}
+                    variant="outline"
+                    className="w-full"
+                >
+                    <RotateCcw className="mr-2 size-4" />
+                    Reset All
+                </Button>
+            </OutputPanel>
+
+            <Card>
+                <CardHeader className="pb-3">
+                    <CardTitle className="text-base">How to Use</CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-3 text-sm">
+                    <div>
+                        <strong className="text-foreground">
+                            1. Choose table type
+                        </strong>
+                        <p className="text-muted-foreground">
+                            Select whether this is for a block,
+                            chest, entity, etc.
+                        </p>
+                    </div>
+                    <Separator />
+                    <div>
+                        <strong className="text-foreground">
+                            2. Add pools
+                        </strong>
+                        <p className="text-muted-foreground">
+                            Pools define separate drop chances.
+                            Each pool rolls independently.
+                        </p>
+                    </div>
+                    <Separator />
+                    <div>
+                        <strong className="text-foreground">
+                            3. Add entries
+                        </strong>
+                        <p className="text-muted-foreground">
+                            Add items to each pool with weights.
+                            Higher weight means more likely to
+                            drop.
+                        </p>
+                    </div>
+                    <Separator />
+                    <div>
+                        <strong className="text-foreground">
+                            4. Add functions and conditions
+                        </strong>
+                        <p className="text-muted-foreground">
+                            Functions modify drops (count, damage,
+                            etc.). Conditions control when drops
+                            occur.
+                        </p>
+                    </div>
+                    <Separator />
+                    <div>
+                        <strong className="text-foreground">
+                            5. Export JSON
+                        </strong>
+                        <p className="text-muted-foreground">
+                            Copy or download the JSON and place it
+                            in your datapack's loot_tables folder.
+                        </p>
+                    </div>
+                </CardContent>
+            </Card>
+        </>
+    );
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Loot Table Generator" />
-
-            <div className="mx-auto max-w-screen-2xl p-4 sm:p-6">
-                <div className="mb-6 space-y-2">
-                    <h1 className="text-3xl font-bold tracking-tight">
-                        Minecraft Loot Table Generator
-                    </h1>
-                    <p className="text-base text-muted-foreground">
-                        Create custom loot tables for blocks, chests, mobs, and
-                        more
-                    </p>
-                </div>
-
-                <div className="grid gap-6 lg:grid-cols-[1fr,400px]">
-                    <div className="space-y-6">
+            <ToolLayout
+                title="Minecraft Loot Table Generator"
+                description="Create custom loot tables for blocks, chests, mobs, and more"
+                sidebar={sidebar}
+            >
                         <Card>
                             <CardHeader>
                                 <CardTitle>Loot Table Type</CardTitle>
@@ -1016,167 +1167,7 @@ export default function LootTableGenerator() {
                                 )}
                             </CardContent>
                         </Card>
-                    </div>
-
-                    <div className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Load Preset</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-2">
-                                    {lootTablePresets.map((preset) => (
-                                        <button
-                                            key={preset.id}
-                                            type="button"
-                                            onClick={() =>
-                                                loadPreset(preset.id)
-                                            }
-                                            className="w-full rounded-lg border p-3 text-left transition-all hover:border-primary hover:bg-accent"
-                                        >
-                                            <div className="font-medium">
-                                                {preset.name}
-                                            </div>
-                                            <div className="text-xs text-muted-foreground">
-                                                {preset.description}
-                                            </div>
-                                        </button>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>JSON Preview</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                {validationErrors.length > 0 && (
-                                    <div className="space-y-2 rounded-lg border border-destructive bg-destructive/10 p-3">
-                                        <div className="flex items-center gap-2 text-sm font-medium text-destructive">
-                                            <AlertCircle className="size-4" />
-                                            Validation Issues
-                                        </div>
-                                        <ul className="ml-6 list-disc text-xs text-destructive">
-                                            {validationErrors.map(
-                                                (error, index) => (
-                                                    <li key={index}>{error}</li>
-                                                ),
-                                            )}
-                                        </ul>
-                                    </div>
-                                )}
-
-                                <div className="max-h-96 overflow-auto rounded-lg border bg-muted/50 p-3">
-                                    <pre className="font-mono text-xs">
-                                        {generateJSON()}
-                                    </pre>
-                                </div>
-
-                                <div className="flex gap-2">
-                                    <Button
-                                        onClick={copyJSON}
-                                        className="flex-1"
-                                        disabled={
-                                            validationErrors.length > 0 ||
-                                            copied
-                                        }
-                                    >
-                                        {copied ? (
-                                            <>
-                                                <Check className="mr-2 size-4" />
-                                                Copied!
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Copy className="mr-2 size-4" />
-                                                Copy
-                                            </>
-                                        )}
-                                    </Button>
-                                    <Button
-                                        onClick={downloadJSON}
-                                        variant="outline"
-                                        className="flex-1"
-                                        disabled={validationErrors.length > 0}
-                                    >
-                                        <Download className="mr-2 size-4" />
-                                        Download
-                                    </Button>
-                                </div>
-
-                                <Button
-                                    onClick={reset}
-                                    variant="outline"
-                                    className="w-full"
-                                >
-                                    <RotateCcw className="mr-2 size-4" />
-                                    Reset All
-                                </Button>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>How to Use</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-3 text-sm text-muted-foreground">
-                                <div>
-                                    <strong className="text-foreground">
-                                        1. Choose table type
-                                    </strong>
-                                    <p>
-                                        Select whether this is for a block,
-                                        chest, entity, etc.
-                                    </p>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <strong className="text-foreground">
-                                        2. Add pools
-                                    </strong>
-                                    <p>
-                                        Pools define separate drop chances.
-                                        Each pool rolls independently.
-                                    </p>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <strong className="text-foreground">
-                                        3. Add entries
-                                    </strong>
-                                    <p>
-                                        Add items to each pool with weights.
-                                        Higher weight means more likely to
-                                        drop.
-                                    </p>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <strong className="text-foreground">
-                                        4. Add functions and conditions
-                                    </strong>
-                                    <p>
-                                        Functions modify drops (count, damage,
-                                        etc.). Conditions control when drops
-                                        occur.
-                                    </p>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <strong className="text-foreground">
-                                        5. Export JSON
-                                    </strong>
-                                    <p>
-                                        Copy or download the JSON and place it
-                                        in your datapack's loot_tables folder.
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
-            </div>
+            </ToolLayout>
         </AppLayout>
     );
 }

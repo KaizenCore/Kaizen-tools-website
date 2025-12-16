@@ -12,6 +12,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { OutputPanel, ToolLayout } from '@/components/tool-layout';
 import {
     advancementPresets,
     frameTypes,
@@ -172,23 +173,113 @@ export default function AdvancementGenerator() {
     const selectedFrame = frameTypes.find((f) => f.id === frame);
     const selectedTrigger = triggerTypes.find((t) => t.id === trigger);
 
+    const sidebar = (
+        <>
+            <OutputPanel
+                title="JSON Output"
+                actions={
+                    <>
+                        <Button
+                            onClick={copyJSON}
+                            variant="ghost"
+                            size="sm"
+                            disabled={copied}
+                        >
+                            {copied ? (
+                                <>
+                                    <Check className="mr-1 size-3" />
+                                    Copied
+                                </>
+                            ) : (
+                                <>
+                                    <Copy className="mr-1 size-3" />
+                                    Copy
+                                </>
+                            )}
+                        </Button>
+                        <Button
+                            onClick={downloadJSON}
+                            variant="ghost"
+                            size="sm"
+                        >
+                            <Download className="mr-1 size-3" />
+                            Download
+                        </Button>
+                    </>
+                }
+            >
+                <div className="max-h-96 overflow-y-auto rounded-lg border bg-muted/50 p-3">
+                    <pre className="font-mono text-xs">
+                        {generateJSON()}
+                    </pre>
+                </div>
+
+                <Button
+                    onClick={reset}
+                    variant="outline"
+                    className="w-full"
+                >
+                    <RotateCcw className="mr-2 size-4" />
+                    Reset All
+                </Button>
+            </OutputPanel>
+
+            <Card>
+                <CardHeader className="pb-3">
+                    <CardTitle className="text-base">How to Use</CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-3 text-sm">
+                    <div>
+                        <strong className="text-foreground">
+                            1. Configure your advancement
+                        </strong>
+                        <p className="text-muted-foreground">
+                            Set the title, description, icon, frame
+                            type, and trigger conditions.
+                        </p>
+                    </div>
+                    <Separator />
+                    <div>
+                        <strong className="text-foreground">
+                            2. Add rewards (optional)
+                        </strong>
+                        <p className="text-muted-foreground">
+                            Grant experience points, loot tables,
+                            recipes, or run functions.
+                        </p>
+                    </div>
+                    <Separator />
+                    <div>
+                        <strong className="text-foreground">
+                            3. Download the JSON
+                        </strong>
+                        <p className="text-muted-foreground">
+                            Save the JSON file to your datapack's
+                            advancements folder.
+                        </p>
+                    </div>
+                    <Separator />
+                    <div>
+                        <strong className="text-foreground">
+                            4. File location
+                        </strong>
+                        <p className="font-mono text-xs text-muted-foreground">
+                            datapacks/[namespace]/data/[namespace]/advancements/
+                        </p>
+                    </div>
+                </CardContent>
+            </Card>
+        </>
+    );
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Advancement Generator" />
-
-            <div className="mx-auto max-w-screen-2xl p-4 sm:p-6">
-                <div className="mb-6 space-y-2">
-                    <h1 className="text-3xl font-bold tracking-tight">
-                        Minecraft Advancement Generator
-                    </h1>
-                    <p className="text-base text-muted-foreground">
-                        Create custom advancements with triggers, rewards, and
-                        display options
-                    </p>
-                </div>
-
-                <div className="grid gap-6 lg:grid-cols-[1fr,400px]">
-                    <div className="space-y-6">
+            <ToolLayout
+                title="Minecraft Advancement Generator"
+                description="Create custom advancements with triggers, rewards, and display options"
+                sidebar={sidebar}
+            >
                         <Card>
                             <CardHeader>
                                 <CardTitle>Presets</CardTitle>
@@ -537,106 +628,7 @@ export default function AdvancementGenerator() {
                                 </div>
                             </CardContent>
                         </Card>
-                    </div>
-
-                    <div className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>JSON Output</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="max-h-96 overflow-y-auto rounded-lg border bg-muted/50 p-3">
-                                    <pre className="font-mono text-xs">
-                                        {generateJSON()}
-                                    </pre>
-                                </div>
-
-                                <div className="flex gap-2">
-                                    <Button
-                                        onClick={copyJSON}
-                                        className="flex-1"
-                                        disabled={copied}
-                                    >
-                                        {copied ? (
-                                            <>
-                                                <Check className="mr-2 size-4" />
-                                                Copied!
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Copy className="mr-2 size-4" />
-                                                Copy JSON
-                                            </>
-                                        )}
-                                    </Button>
-                                    <Button
-                                        onClick={downloadJSON}
-                                        variant="outline"
-                                        className="flex-1"
-                                    >
-                                        <Download className="mr-2 size-4" />
-                                        Download
-                                    </Button>
-                                </div>
-                                <Button
-                                    onClick={reset}
-                                    variant="outline"
-                                    className="w-full"
-                                >
-                                    <RotateCcw className="mr-2 size-4" />
-                                    Reset All
-                                </Button>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>How to Use</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-3 text-sm text-muted-foreground">
-                                <div>
-                                    <strong className="text-foreground">
-                                        1. Configure your advancement
-                                    </strong>
-                                    <p>
-                                        Set the title, description, icon, frame
-                                        type, and trigger conditions.
-                                    </p>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <strong className="text-foreground">
-                                        2. Add rewards (optional)
-                                    </strong>
-                                    <p>
-                                        Grant experience points, loot tables,
-                                        recipes, or run functions.
-                                    </p>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <strong className="text-foreground">
-                                        3. Download the JSON
-                                    </strong>
-                                    <p>
-                                        Save the JSON file to your datapack's
-                                        advancements folder.
-                                    </p>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <strong className="text-foreground">
-                                        4. File location
-                                    </strong>
-                                    <p className="font-mono text-xs">
-                                        datapacks/[namespace]/data/[namespace]/advancements/
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
-            </div>
+            </ToolLayout>
         </AppLayout>
     );
 }

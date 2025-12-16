@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { OutputPanel, ToolLayout } from '@/components/tool-layout';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import type {
@@ -138,22 +139,160 @@ export default function ServerStatusIndex() {
         return html.join('<br>');
     };
 
+    const sidebar = (
+        <>
+            {!isChecking && status && status.online && (
+                <OutputPanel title="Server Details">
+                    {/* Server Icon and Status */}
+                    <div className="flex items-center gap-3">
+                        {status.icon && (
+                            <img
+                                src={status.icon}
+                                alt="Server icon"
+                                className="size-12 rounded-lg border bg-muted"
+                            />
+                        )}
+                        <div className="flex-1">
+                            <h3 className="font-semibold">
+                                {status.hostname || status.address}
+                            </h3>
+                            <Badge variant="default" className="gap-1 text-xs">
+                                <CheckCircle className="size-3" />
+                                Online
+                            </Badge>
+                        </div>
+                    </div>
+
+                    {/* Server Stats */}
+                    <div className="grid gap-3">
+                        <div className="flex items-center gap-3 rounded-lg border bg-card p-3">
+                            <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                                <Users className="size-4 text-primary" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <p className="text-xs font-medium text-muted-foreground">
+                                    Players
+                                </p>
+                                <p className="text-lg font-semibold">
+                                    {status.players?.online ?? 0} /{' '}
+                                    {status.players?.max ?? 0}
+                                </p>
+                            </div>
+                        </div>
+
+                        {status.version && (
+                            <div className="flex items-center gap-3 rounded-lg border bg-card p-3">
+                                <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                                    <Server className="size-4 text-primary" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-xs font-medium text-muted-foreground">
+                                        Version
+                                    </p>
+                                    <p className="truncate text-sm font-semibold">
+                                        {status.version}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
+                        {status.software && (
+                            <div className="flex items-center gap-3 rounded-lg border bg-card p-3">
+                                <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                                    <Activity className="size-4 text-primary" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-xs font-medium text-muted-foreground">
+                                        Software
+                                    </p>
+                                    <p className="truncate text-sm font-semibold">
+                                        {status.software}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* MOTD */}
+                    {status.motd && status.motd.html && (
+                        <div className="space-y-2">
+                            <h4 className="text-xs font-medium text-muted-foreground">
+                                Message of the Day
+                            </h4>
+                            <div
+                                className="rounded-lg border bg-muted/50 p-3 font-mono text-xs leading-relaxed"
+                                dangerouslySetInnerHTML={{
+                                    __html: parseMotdColors(status.motd.html),
+                                }}
+                            />
+                        </div>
+                    )}
+                </OutputPanel>
+            )}
+
+            {!isChecking && status && !status.online && status.error && (
+                <OutputPanel title="Server Status">
+                    <div className="flex items-start gap-3 rounded-lg border border-destructive/20 bg-destructive/5 p-3 dark:bg-destructive/10">
+                        <XCircle className="size-5 shrink-0 text-destructive" />
+                        <div className="flex-1">
+                            <p className="font-semibold text-destructive">
+                                Server Offline
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                                {status.error}
+                            </p>
+                        </div>
+                    </div>
+                </OutputPanel>
+            )}
+
+            {/* Info Card */}
+            <Card>
+                <CardHeader className="pb-3">
+                    <CardTitle className="text-base">About Server Status</CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-3 text-sm">
+                    <div className="flex gap-2">
+                        <AlertCircle className="size-4 shrink-0 text-primary" />
+                        <p className="text-muted-foreground">
+                            <strong className="text-foreground">Query port:</strong> Uses default port 25565 if not specified
+                        </p>
+                    </div>
+                    <div className="flex gap-2">
+                        <AlertCircle className="size-4 shrink-0 text-primary" />
+                        <p className="text-muted-foreground">
+                            <strong className="text-foreground">Real-time:</strong> Shows current server status and player count
+                        </p>
+                    </div>
+                    <div className="flex gap-2">
+                        <AlertCircle className="size-4 shrink-0 text-primary" />
+                        <p className="text-muted-foreground">
+                            <strong className="text-foreground">Format:</strong> Enter as domain.com or domain.com:port
+                        </p>
+                    </div>
+                </CardContent>
+            </Card>
+        </>
+    );
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Server Status Checker" />
-
-            <div className="mx-auto max-w-screen-2xl p-4 sm:p-6">
-                <div className="mb-6 space-y-2">
-                    <h1 className="text-3xl font-bold tracking-tight">
-                        Minecraft Server Status Checker
-                    </h1>
-                    <p className="text-base text-muted-foreground">
-                        Check the status of any Minecraft server
-                    </p>
-                </div>
-
+            <ToolLayout
+                title="Minecraft Server Status Checker"
+                description="Check the status of any Minecraft server"
+                sidebar={sidebar}
+                alerts={
+                    error && (
+                        <div className="flex items-center gap-2 rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
+                            <AlertCircle className="size-4" />
+                            {error}
+                        </div>
+                    )
+                }
+            >
                 {/* Search Form */}
-                <form onSubmit={handleSubmit} className="mb-8">
+                <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="flex flex-col gap-3 sm:flex-row">
                         <div className="relative flex-1">
                             <Globe className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-muted-foreground" />
@@ -187,19 +326,9 @@ export default function ServerStatusIndex() {
                     </div>
                 </form>
 
-                {/* Error Message */}
-                {error && (
-                    <Card className="mb-8 border-destructive">
-                        <CardContent className="flex items-center gap-3 pt-6">
-                            <AlertCircle className="size-5 text-destructive" />
-                            <p className="text-sm text-destructive">{error}</p>
-                        </CardContent>
-                    </Card>
-                )}
-
                 {/* Loading State */}
                 {isChecking && (
-                    <Card className="mb-8">
+                    <Card>
                         <CardHeader>
                             <Skeleton className="h-6 w-48" />
                             <Skeleton className="h-4 w-64" />
@@ -208,144 +337,6 @@ export default function ServerStatusIndex() {
                             <Skeleton className="h-20 w-full" />
                             <Skeleton className="h-16 w-full" />
                         </CardContent>
-                    </Card>
-                )}
-
-                {/* Server Status Result */}
-                {!isChecking && status && (
-                    <Card className="mb-8">
-                        <CardHeader>
-                            <div className="flex flex-wrap items-center justify-between gap-4">
-                                <div className="space-y-1.5">
-                                    <CardTitle className="flex items-center gap-2">
-                                        <Server className="size-5" />
-                                        {status.hostname || status.address}
-                                    </CardTitle>
-                                    <CardDescription>
-                                        {status.address}
-                                        {status.port && status.port !== 25565
-                                            ? `:${status.port}`
-                                            : ''}
-                                    </CardDescription>
-                                </div>
-                                <Badge
-                                    variant={
-                                        status.online
-                                            ? 'default'
-                                            : 'destructive'
-                                    }
-                                    className="gap-1.5 px-3 py-1.5 text-sm"
-                                >
-                                    {status.online ? (
-                                        <>
-                                            <CheckCircle className="size-4" />
-                                            Online
-                                        </>
-                                    ) : (
-                                        <>
-                                            <XCircle className="size-4" />
-                                            Offline
-                                        </>
-                                    )}
-                                </Badge>
-                            </div>
-                        </CardHeader>
-
-                        {status.online && (
-                            <CardContent className="space-y-6">
-                                {/* Server Icon and MOTD */}
-                                <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-                                    {status.icon && (
-                                        <div className="shrink-0">
-                                            <img
-                                                src={status.icon}
-                                                alt="Server icon"
-                                                className="size-16 rounded-lg border bg-muted"
-                                            />
-                                        </div>
-                                    )}
-                                    {status.motd && status.motd.html && (
-                                        <div className="flex-1 space-y-2">
-                                            <h3 className="text-sm font-medium text-muted-foreground">
-                                                Message of the Day
-                                            </h3>
-                                            <div
-                                                className="font-mono text-sm leading-relaxed"
-                                                dangerouslySetInnerHTML={{
-                                                    __html: parseMotdColors(
-                                                        status.motd.html,
-                                                    ),
-                                                }}
-                                            />
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Server Info Grid */}
-                                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                                    {/* Players */}
-                                    <div className="flex items-center gap-3 rounded-lg border bg-card p-4">
-                                        <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                                            <Users className="size-5 text-primary" />
-                                        </div>
-                                        <div className="min-w-0">
-                                            <p className="text-sm font-medium text-muted-foreground">
-                                                Players
-                                            </p>
-                                            <p className="truncate text-lg font-semibold">
-                                                {status.players?.online ?? 0} /{' '}
-                                                {status.players?.max ?? 0}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {/* Version */}
-                                    {status.version && (
-                                        <div className="flex items-center gap-3 rounded-lg border bg-card p-4">
-                                            <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                                                <Server className="size-5 text-primary" />
-                                            </div>
-                                            <div className="min-w-0">
-                                                <p className="text-sm font-medium text-muted-foreground">
-                                                    Version
-                                                </p>
-                                                <p className="truncate text-lg font-semibold">
-                                                    {status.version}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Software */}
-                                    {status.software && (
-                                        <div className="flex items-center gap-3 rounded-lg border bg-card p-4">
-                                            <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                                                <Activity className="size-5 text-primary" />
-                                            </div>
-                                            <div className="min-w-0">
-                                                <p className="text-sm font-medium text-muted-foreground">
-                                                    Software
-                                                </p>
-                                                <p className="truncate text-lg font-semibold">
-                                                    {status.software}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </CardContent>
-                        )}
-
-                        {!status.online && status.error && (
-                            <CardContent>
-                                <div className="flex items-center gap-3 rounded-lg border border-destructive/20 bg-destructive/5 p-4 dark:bg-destructive/10">
-                                    <AlertCircle className="size-5 text-destructive" />
-                                    <p className="text-sm text-muted-foreground">
-                                        {status.error}
-                                    </p>
-                                </div>
-                            </CardContent>
-                        )}
                     </Card>
                 )}
 
@@ -409,7 +400,7 @@ export default function ServerStatusIndex() {
                     !status &&
                     !error &&
                     recentSearches.length === 0 && (
-                        <div className="mt-16 flex flex-col items-center justify-center space-y-4 py-12">
+                        <div className="mt-8 flex flex-col items-center justify-center space-y-4 py-12">
                             <div className="flex size-20 items-center justify-center rounded-full bg-muted/50">
                                 <Server className="size-10 text-muted-foreground" />
                             </div>
@@ -425,7 +416,7 @@ export default function ServerStatusIndex() {
                             </div>
                         </div>
                     )}
-            </div>
+            </ToolLayout>
         </AppLayout>
     );
 }

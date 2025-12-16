@@ -20,6 +20,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import { Search, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { ToolLayout } from '@/components/tool-layout';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -294,15 +295,10 @@ export default function CraftingRecipes() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Crafting Recipes" />
-
-            <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto p-4 md:p-6">
-                <div className="flex flex-col gap-2">
-                    <h1 className="text-3xl font-bold">Crafting Recipe Viewer</h1>
-                    <p className="text-muted-foreground">
-                        Browse and search Minecraft crafting recipes
-                    </p>
-                </div>
-
+            <ToolLayout
+                title="Crafting Recipe Viewer"
+                description="Browse and search Minecraft crafting recipes"
+            >
                 <div className="flex flex-col gap-4">
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -360,7 +356,7 @@ export default function CraftingRecipes() {
                         ))}
                     </div>
                 )}
-            </div>
+            </ToolLayout>
 
             <RecipeDetailDialog
                 recipe={selectedRecipe}

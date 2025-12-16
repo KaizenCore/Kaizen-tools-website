@@ -16,6 +16,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { ToolLayout } from '@/components/tool-layout';
 import {
     bestTrades,
     calculatePrice,
@@ -97,135 +98,133 @@ export default function VillagerTrading() {
         {} as Record<string, typeof filteredTrades>,
     );
 
+    const sidebar = (
+        <>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Users className="size-5" />
+                        Select Profession
+                    </CardTitle>
+                    <CardDescription>
+                        Choose a villager profession to view trades
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-2">
+                        <Label htmlFor="profession-select">Profession</Label>
+                        <Select
+                            value={selectedProfession.id}
+                            onValueChange={(value) => {
+                                const profession = professions.find((p) => p.id === value);
+                                if (profession) {
+                                    setSelectedProfession(profession);
+                                }
+                            }}
+                        >
+                            <SelectTrigger id="profession-select">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {professions.map((profession) => (
+                                    <SelectItem key={profession.id} value={profession.id}>
+                                        {profession.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div className="flex flex-col gap-2 rounded-lg border p-4">
+                        <div className="flex items-center gap-2">
+                            <Boxes className="size-4 text-muted-foreground" />
+                            <span className="text-sm font-semibold">Workstation Block</span>
+                        </div>
+                        <p className="text-lg font-bold" style={{ color: selectedProfession.color }}>
+                            {selectedProfession.workstation}
+                        </p>
+                    </div>
+
+                    <div className="flex flex-col gap-2 rounded-lg border p-4">
+                        <div className="flex items-center gap-2">
+                            <Info className="size-4 text-muted-foreground" />
+                            <span className="text-sm font-semibold">Total Trades</span>
+                        </div>
+                        <p className="text-lg font-bold">{selectedProfession.trades.length} trades</p>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Coins className="size-5" />
+                        Price Calculator
+                    </CardTitle>
+                    <CardDescription>Apply discounts to see reduced prices</CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-4">
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            id="hero-discount"
+                            checked={heroDiscount}
+                            onChange={(e) => {
+                                setHeroDiscount(e.target.checked);
+                            }}
+                            className="size-4 rounded border-gray-300"
+                        />
+                        <Label htmlFor="hero-discount" className="cursor-pointer font-normal">
+                            Hero of the Village (30% off)
+                        </Label>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            id="cured-discount"
+                            checked={curedDiscount}
+                            onChange={(e) => {
+                                setCuredDiscount(e.target.checked);
+                            }}
+                            className="size-4 rounded border-gray-300"
+                        />
+                        <Label htmlFor="cured-discount" className="cursor-pointer font-normal">
+                            Cured Zombie Villager (95% off)
+                        </Label>
+                    </div>
+
+                    {(heroDiscount || curedDiscount) && (
+                        <div className="flex flex-col gap-2 rounded-lg border border-green-500/20 bg-green-500/10 p-3">
+                            <div className="flex items-center gap-2">
+                                <CheckCircle2 className="size-4 text-green-700 dark:text-green-400" />
+                                <span className="text-sm font-semibold text-green-700 dark:text-green-400">
+                                    Discounts Active
+                                </span>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                {curedDiscount && heroDiscount
+                                    ? 'Total discount: 98.5% off (both discounts stack!)'
+                                    : curedDiscount
+                                      ? 'Cured villager discount: 95% off all trades'
+                                      : 'Hero of the Village: 30% off all trades'}
+                            </p>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+        </>
+    );
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Villager Trading Guide" />
-            <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto p-4 md:p-6">
-                <div className="flex flex-col gap-2">
-                    <h1 className="text-3xl font-bold">Villager Trading Guide</h1>
-                    <p className="text-muted-foreground">
-                        Browse all villager professions, trades, and optimize your emerald economy
-                    </p>
-                </div>
-
-                <div className="grid gap-6 lg:grid-cols-3">
-                    <div className="flex flex-col gap-6 lg:col-span-1">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Users className="size-5" />
-                                    Select Profession
-                                </CardTitle>
-                                <CardDescription>
-                                    Choose a villager profession to view trades
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="flex flex-col gap-4">
-                                <div className="flex flex-col gap-2">
-                                    <Label htmlFor="profession-select">Profession</Label>
-                                    <Select
-                                        value={selectedProfession.id}
-                                        onValueChange={(value) => {
-                                            const profession = professions.find((p) => p.id === value);
-                                            if (profession) {
-                                                setSelectedProfession(profession);
-                                            }
-                                        }}
-                                    >
-                                        <SelectTrigger id="profession-select">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {professions.map((profession) => (
-                                                <SelectItem key={profession.id} value={profession.id}>
-                                                    {profession.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                <div className="flex flex-col gap-2 rounded-lg border p-4">
-                                    <div className="flex items-center gap-2">
-                                        <Boxes className="size-4 text-muted-foreground" />
-                                        <span className="text-sm font-semibold">Workstation Block</span>
-                                    </div>
-                                    <p className="text-lg font-bold" style={{ color: selectedProfession.color }}>
-                                        {selectedProfession.workstation}
-                                    </p>
-                                </div>
-
-                                <div className="flex flex-col gap-2 rounded-lg border p-4">
-                                    <div className="flex items-center gap-2">
-                                        <Info className="size-4 text-muted-foreground" />
-                                        <span className="text-sm font-semibold">Total Trades</span>
-                                    </div>
-                                    <p className="text-lg font-bold">{selectedProfession.trades.length} trades</p>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Coins className="size-5" />
-                                    Price Calculator
-                                </CardTitle>
-                                <CardDescription>Apply discounts to see reduced prices</CardDescription>
-                            </CardHeader>
-                            <CardContent className="flex flex-col gap-4">
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        id="hero-discount"
-                                        checked={heroDiscount}
-                                        onChange={(e) => {
-                                            setHeroDiscount(e.target.checked);
-                                        }}
-                                        className="size-4 rounded border-gray-300"
-                                    />
-                                    <Label htmlFor="hero-discount" className="cursor-pointer font-normal">
-                                        Hero of the Village (30% off)
-                                    </Label>
-                                </div>
-
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        id="cured-discount"
-                                        checked={curedDiscount}
-                                        onChange={(e) => {
-                                            setCuredDiscount(e.target.checked);
-                                        }}
-                                        className="size-4 rounded border-gray-300"
-                                    />
-                                    <Label htmlFor="cured-discount" className="cursor-pointer font-normal">
-                                        Cured Zombie Villager (95% off)
-                                    </Label>
-                                </div>
-
-                                {(heroDiscount || curedDiscount) && (
-                                    <div className="flex flex-col gap-2 rounded-lg border border-green-500/20 bg-green-500/10 p-3">
-                                        <div className="flex items-center gap-2">
-                                            <CheckCircle2 className="size-4 text-green-700 dark:text-green-400" />
-                                            <span className="text-sm font-semibold text-green-700 dark:text-green-400">
-                                                Discounts Active
-                                            </span>
-                                        </div>
-                                        <p className="text-xs text-muted-foreground">
-                                            {curedDiscount && heroDiscount
-                                                ? 'Total discount: 98.5% off (both discounts stack!)'
-                                                : curedDiscount
-                                                  ? 'Cured villager discount: 95% off all trades'
-                                                  : 'Hero of the Village: 30% off all trades'}
-                                        </p>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    <div className="flex flex-col gap-6 lg:col-span-2">
+            <ToolLayout
+                title="Villager Trading Guide"
+                description="Browse all villager professions, trades, and optimize your emerald economy"
+                sidebar={sidebar}
+            >
+                <div className="flex flex-col gap-6">
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
@@ -371,10 +370,8 @@ export default function VillagerTrading() {
                                 )}
                             </CardContent>
                         </Card>
-                    </div>
-                </div>
 
-                <div className="grid gap-6 lg:grid-cols-2">
+                <div className="grid gap-6 sm:grid-cols-2">
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
@@ -515,7 +512,8 @@ export default function VillagerTrading() {
                         </div>
                     </CardContent>
                 </Card>
-            </div>
+                </div>
+            </ToolLayout>
         </AppLayout>
     );
 }

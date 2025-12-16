@@ -21,6 +21,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { OutputPanel, ToolLayout } from '@/components/tool-layout';
 import {
     entityTypes,
     gamemodeOptions,
@@ -352,22 +353,108 @@ export default function TargetSelectorGenerator() {
         {} as Record<string, typeof entityTypes>,
     );
 
+    const sidebar = (
+        <>
+            <OutputPanel
+                title="Generated Selector"
+                actions={
+                    <div className="flex gap-2">
+                        <Button onClick={copySelector} variant="ghost" size="sm" disabled={copied}>
+                            {copied ? (
+                                <>
+                                    <Check className="mr-1 size-3" />
+                                    Copied
+                                </>
+                            ) : (
+                                <>
+                                    <Copy className="mr-1 size-3" />
+                                    Copy
+                                </>
+                            )}
+                        </Button>
+                        <Button onClick={resetAll} variant="ghost" size="sm">
+                            <RotateCcw className="mr-1 size-3" />
+                            Reset
+                        </Button>
+                    </div>
+                }
+            >
+                <div className="overflow-x-auto rounded-lg border bg-muted/50 p-3">
+                    <code className="block break-all font-mono text-sm text-accent">
+                        {generateSelector()}
+                    </code>
+                </div>
+            </OutputPanel>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Dices className="size-5" />
+                        Example Presets
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                    {presetExamples.map((preset, index) => (
+                        <button
+                            key={index}
+                            type="button"
+                            onClick={() => loadPreset(preset)}
+                            className="group w-full rounded-lg border bg-card p-3 text-left transition-colors hover:bg-accent"
+                        >
+                            <div className="mb-1 font-medium group-hover:text-accent-foreground">
+                                {preset.name}
+                            </div>
+                            <div className="mb-2 text-sm text-muted-foreground">
+                                {preset.description}
+                            </div>
+                            <code className="block break-all font-mono text-xs text-accent">
+                                {preset.selector}
+                            </code>
+                        </button>
+                    ))}
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>How to Use</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm text-muted-foreground">
+                    <div>
+                        <strong className="text-foreground">1. Choose selector type</strong>
+                        <p>Select @a, @e, @p, @r, or @s based on your needs.</p>
+                    </div>
+                    <div>
+                        <strong className="text-foreground">2. Configure filters</strong>
+                        <p>
+                            Add position, entity type, gamemode, and other filters to
+                            narrow selection.
+                        </p>
+                    </div>
+                    <div>
+                        <strong className="text-foreground">3. Copy selector</strong>
+                        <p>Click Copy to copy the generated selector to clipboard.</p>
+                    </div>
+                    <div>
+                        <strong className="text-foreground">4. Use in commands</strong>
+                        <p>
+                            Paste the selector into any Minecraft command that accepts
+                            targets.
+                        </p>
+                    </div>
+                </CardContent>
+            </Card>
+        </>
+    );
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Target Selector Generator" />
-
-            <div className="mx-auto max-w-screen-2xl p-4 sm:p-6">
-                <div className="mb-6 space-y-2">
-                    <h1 className="text-3xl font-bold tracking-tight">
-                        Minecraft Target Selector Generator
-                    </h1>
-                    <p className="text-base text-muted-foreground">
-                        Create complex target selectors for Minecraft commands
-                    </p>
-                </div>
-
-                <div className="grid gap-6 lg:grid-cols-[1fr,400px]">
-                    <div className="space-y-6">
+            <ToolLayout
+                title="Minecraft Target Selector Generator"
+                description="Create complex target selectors for Minecraft commands"
+                sidebar={sidebar}
+            >
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
@@ -1011,105 +1098,7 @@ export default function TargetSelectorGenerator() {
                                 </CollapsibleContent>
                             </Card>
                         </Collapsible>
-                    </div>
-
-                    <div className="space-y-6">
-                        <Card className="border-accent bg-gradient-to-br from-accent/10 to-transparent">
-                            <CardHeader>
-                                <CardTitle>Generated Selector</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="overflow-x-auto rounded-lg border bg-muted/50 p-3">
-                                    <code className="block break-all font-mono text-sm text-accent">
-                                        {generateSelector()}
-                                    </code>
-                                </div>
-
-                                <div className="flex gap-2">
-                                    <Button onClick={copySelector} className="flex-1">
-                                        {copied ? (
-                                            <>
-                                                <Check className="mr-2 size-4" />
-                                                Copied!
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Copy className="mr-2 size-4" />
-                                                Copy
-                                            </>
-                                        )}
-                                    </Button>
-                                    <Button onClick={resetAll} variant="outline" className="flex-1">
-                                        <RotateCcw className="mr-2 size-4" />
-                                        Reset
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Dices className="size-5" />
-                                    Example Presets
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-2">
-                                {presetExamples.map((preset, index) => (
-                                    <button
-                                        key={index}
-                                        type="button"
-                                        onClick={() => {
-                                            loadPreset(preset);
-                                        }}
-                                        className="group w-full rounded-lg border bg-card p-3 text-left transition-colors hover:bg-accent"
-                                    >
-                                        <div className="mb-1 font-medium group-hover:text-accent-foreground">
-                                            {preset.name}
-                                        </div>
-                                        <div className="mb-2 text-sm text-muted-foreground">
-                                            {preset.description}
-                                        </div>
-                                        <code className="block break-all font-mono text-xs text-accent">
-                                            {preset.selector}
-                                        </code>
-                                    </button>
-                                ))}
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>How to Use</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-3 text-sm text-muted-foreground">
-                                <div>
-                                    <strong className="text-foreground">1. Choose selector type</strong>
-                                    <p>Select @a, @e, @p, @r, or @s based on your needs.</p>
-                                </div>
-                                <div>
-                                    <strong className="text-foreground">2. Configure filters</strong>
-                                    <p>
-                                        Add position, entity type, gamemode, and other filters to
-                                        narrow selection.
-                                    </p>
-                                </div>
-                                <div>
-                                    <strong className="text-foreground">3. Copy selector</strong>
-                                    <p>Click Copy to copy the generated selector to clipboard.</p>
-                                </div>
-                                <div>
-                                    <strong className="text-foreground">4. Use in commands</strong>
-                                    <p>
-                                        Paste the selector into any Minecraft command that accepts
-                                        targets.
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
-            </div>
+            </ToolLayout>
         </AppLayout>
     );
 }

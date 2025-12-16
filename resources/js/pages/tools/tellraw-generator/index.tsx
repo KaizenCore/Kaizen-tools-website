@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Toggle } from '@/components/ui/toggle';
+import { OutputPanel, ToolLayout } from '@/components/tool-layout';
 import {
     clickEvents,
     commandTypes,
@@ -274,23 +275,156 @@ export default function TellrawGenerator() {
         return '';
     };
 
+    const sidebar = (
+        <>
+            {/* Preview Panel */}
+            <OutputPanel title="Preview">
+                <div className="min-h-[80px] rounded-lg border bg-[#313131] p-4 font-mono text-base">
+                    {components.map((component) => (
+                        <span
+                            key={component.id}
+                            style={getPreviewStyle(component)}
+                        >
+                            {getPreviewText(component)}
+                        </span>
+                    ))}
+                </div>
+            </OutputPanel>
+
+            {/* JSON Output Panel */}
+            <OutputPanel
+                title="JSON Output"
+                actions={
+                    <Button
+                        onClick={copyJSON}
+                        variant="ghost"
+                        size="sm"
+                        disabled={copiedJson}
+                    >
+                        {copiedJson ? (
+                            <>
+                                <Check className="mr-1 size-3" />
+                                Copied
+                            </>
+                        ) : (
+                            <>
+                                <Copy className="mr-1 size-3" />
+                                Copy
+                            </>
+                        )}
+                    </Button>
+                }
+            >
+                <div className="max-h-64 overflow-auto rounded-lg border bg-muted/50 p-3">
+                    <pre className="text-xs">
+                        {JSON.stringify(
+                            generateJSON(),
+                            null,
+                            2,
+                        )}
+                    </pre>
+                </div>
+            </OutputPanel>
+
+            {/* Full Command Panel */}
+            <OutputPanel
+                title="Full Command"
+                actions={
+                    <Button
+                        onClick={copyCommand}
+                        variant="ghost"
+                        size="sm"
+                        disabled={copiedCommand}
+                    >
+                        {copiedCommand ? (
+                            <>
+                                <Check className="mr-1 size-3" />
+                                Copied
+                            </>
+                        ) : (
+                            <>
+                                <Copy className="mr-1 size-3" />
+                                Copy
+                            </>
+                        )}
+                    </Button>
+                }
+            >
+                <div className="overflow-x-auto rounded-lg border bg-muted/50 p-3">
+                    <code className="block font-mono text-xs break-all">
+                        {generateCommand()}
+                    </code>
+                </div>
+                <Button
+                    onClick={reset}
+                    variant="outline"
+                    className="w-full"
+                >
+                    <RotateCcw className="mr-2 size-4" />
+                    Reset
+                </Button>
+            </OutputPanel>
+
+            {/* Quick Reference Card */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>Quick Reference</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm text-muted-foreground">
+                    <div>
+                        <strong className="text-foreground">
+                            Text Components
+                        </strong>
+                        <p>
+                            Add multiple text segments with
+                            different colors and formatting.
+                        </p>
+                    </div>
+                    <Separator />
+                    <div>
+                        <strong className="text-foreground">
+                            Special Components
+                        </strong>
+                        <p>
+                            Selector: Shows player names. Score:
+                            Shows scoreboard values. Keybind: Shows
+                            key bindings.
+                        </p>
+                    </div>
+                    <Separator />
+                    <div>
+                        <strong className="text-foreground">
+                            Click Events
+                        </strong>
+                        <p>
+                            Make text interactive by adding click
+                            actions like opening URLs or running
+                            commands.
+                        </p>
+                    </div>
+                    <Separator />
+                    <div>
+                        <strong className="text-foreground">
+                            Hover Events
+                        </strong>
+                        <p>
+                            Show additional information when players
+                            hover over text.
+                        </p>
+                    </div>
+                </CardContent>
+            </Card>
+        </>
+    );
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Tellraw Generator" />
-
-            <div className="mx-auto max-w-screen-2xl p-4 sm:p-6">
-                <div className="mb-6 space-y-2">
-                    <h1 className="text-3xl font-bold tracking-tight">
-                        Minecraft Tellraw Generator
-                    </h1>
-                    <p className="text-base text-muted-foreground">
-                        Create custom JSON text for tellraw, title, subtitle,
-                        and actionbar commands
-                    </p>
-                </div>
-
-                <div className="grid gap-6 lg:grid-cols-[1fr,450px]">
-                    <div className="space-y-6">
+            <ToolLayout
+                title="Minecraft Tellraw Generator"
+                description="Create custom JSON text for tellraw, title, subtitle, and actionbar commands"
+                sidebar={sidebar}
+            >
                         <Card>
                             <CardHeader>
                                 <CardTitle>Command Settings</CardTitle>
@@ -877,154 +1011,7 @@ export default function TellrawGenerator() {
                                 ))}
                             </CardContent>
                         </Card>
-                    </div>
-
-                    <div className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Preview</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="min-h-[80px] rounded-lg border bg-[#313131] p-4 font-mono text-base">
-                                    {components.map((component) => (
-                                        <span
-                                            key={component.id}
-                                            style={getPreviewStyle(component)}
-                                        >
-                                            {getPreviewText(component)}
-                                        </span>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>JSON Output</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="max-h-64 overflow-auto rounded-lg border bg-muted/50 p-3">
-                                    <pre className="text-xs">
-                                        {JSON.stringify(
-                                            generateJSON(),
-                                            null,
-                                            2,
-                                        )}
-                                    </pre>
-                                </div>
-                                <Button
-                                    onClick={copyJSON}
-                                    className="w-full"
-                                    variant="outline"
-                                    disabled={copiedJson}
-                                >
-                                    {copiedJson ? (
-                                        <>
-                                            <Check className="mr-2 size-4" />
-                                            Copied!
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Copy className="mr-2 size-4" />
-                                            Copy JSON
-                                        </>
-                                    )}
-                                </Button>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Full Command</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="overflow-x-auto rounded-lg border bg-muted/50 p-3">
-                                    <code className="block font-mono text-xs break-all">
-                                        {generateCommand()}
-                                    </code>
-                                </div>
-
-                                <div className="flex gap-2">
-                                    <Button
-                                        onClick={copyCommand}
-                                        className="flex-1"
-                                        disabled={copiedCommand}
-                                    >
-                                        {copiedCommand ? (
-                                            <>
-                                                <Check className="mr-2 size-4" />
-                                                Copied!
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Copy className="mr-2 size-4" />
-                                                Copy
-                                            </>
-                                        )}
-                                    </Button>
-                                    <Button
-                                        onClick={reset}
-                                        variant="outline"
-                                        className="flex-1"
-                                    >
-                                        <RotateCcw className="mr-2 size-4" />
-                                        Reset
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Quick Reference</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-3 text-sm text-muted-foreground">
-                                <div>
-                                    <strong className="text-foreground">
-                                        Text Components
-                                    </strong>
-                                    <p>
-                                        Add multiple text segments with
-                                        different colors and formatting.
-                                    </p>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <strong className="text-foreground">
-                                        Special Components
-                                    </strong>
-                                    <p>
-                                        Selector: Shows player names. Score:
-                                        Shows scoreboard values. Keybind: Shows
-                                        key bindings.
-                                    </p>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <strong className="text-foreground">
-                                        Click Events
-                                    </strong>
-                                    <p>
-                                        Make text interactive by adding click
-                                        actions like opening URLs or running
-                                        commands.
-                                    </p>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <strong className="text-foreground">
-                                        Hover Events
-                                    </strong>
-                                    <p>
-                                        Show additional information when players
-                                        hover over text.
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
-            </div>
+            </ToolLayout>
         </AppLayout>
     );
 }

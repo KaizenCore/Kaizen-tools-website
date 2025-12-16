@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { OutputPanel, ToolLayout, ToolSection } from '@/components/tool-layout';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
@@ -182,17 +183,83 @@ export default function XpCalculator() {
         {} as Record<string, XPSource[]>,
     );
 
+    const sidebar = (
+        <>
+            {/* Quick Stats */}
+            {getRangeXpResult() && (
+                <OutputPanel title="Level Range Summary">
+                    <div className="flex flex-col gap-3">
+                        <div className="rounded-lg border p-3">
+                            <p className="text-xs font-medium text-muted-foreground">
+                                XP Needed
+                            </p>
+                            <p className="text-2xl font-bold text-green-700 dark:text-green-400">
+                                {formatNumber(getRangeXpResult()!.xpNeeded)}
+                            </p>
+                        </div>
+                        <div className="rounded-lg border p-3">
+                            <p className="text-xs font-medium text-muted-foreground">
+                                Estimated Bottles
+                            </p>
+                            <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">
+                                ~{formatNumber(getBottlesNeeded()!)}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                                Average 7 XP per bottle
+                            </p>
+                        </div>
+                        <div className="relative h-3 overflow-hidden rounded-full bg-muted">
+                            <div
+                                className="h-full bg-green-500 transition-all duration-300"
+                                style={{
+                                    width: `${getProgressPercentage(
+                                        getRangeXpResult()!.currentXp,
+                                        getRangeXpResult()!.targetXp,
+                                    )}%`,
+                                }}
+                            />
+                        </div>
+                    </div>
+                </OutputPanel>
+            )}
+
+            {/* How It Works */}
+            <Card>
+                <CardHeader className="pb-3">
+                    <CardTitle className="text-base">How XP Works</CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-3 text-sm">
+                    <div>
+                        <p className="font-semibold">Level Formula</p>
+                        <p className="text-xs text-muted-foreground">
+                            Levels 0-16: XP = level² + 6 × level
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                            Levels 17-31: XP = 2.5 × level² - 40.5 × level + 360
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                            Levels 32+: XP = 4.5 × level² - 162.5 × level + 2220
+                        </p>
+                    </div>
+                    <div>
+                        <p className="font-semibold">Enchanting Costs</p>
+                        <p className="text-xs text-muted-foreground">
+                            Level 30 enchantments require 1,395 total XP
+                        </p>
+                    </div>
+                </CardContent>
+            </Card>
+        </>
+    );
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="XP Calculator" />
-            <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto p-4 md:p-6">
-                <div className="flex flex-col gap-2">
-                    <h1 className="text-3xl font-bold">Minecraft XP Calculator</h1>
-                    <p className="text-muted-foreground">
-                        Calculate experience points needed for enchanting and leveling
-                    </p>
-                </div>
-
+            <ToolLayout
+                title="Minecraft XP Calculator"
+                description="Calculate experience points needed for enchanting and leveling"
+                sidebar={sidebar}
+            >
                 <div className="grid gap-6 lg:grid-cols-2">
                     <Card className="border-green-500/20 bg-gradient-to-br from-green-500/5 to-transparent dark:border-green-500/30">
                         <CardHeader>
@@ -325,6 +392,7 @@ export default function XpCalculator() {
                     </Card>
                 </div>
 
+                {/* Level Range Calculator */}
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
@@ -378,81 +446,32 @@ export default function XpCalculator() {
                         </div>
 
                         {getRangeXpResult() && (
-                            <div className="flex flex-col gap-4">
-                                <div className="grid gap-4 sm:grid-cols-3">
-                                    <div className="rounded-lg border p-4">
-                                        <h3 className="mb-1 text-sm font-medium text-muted-foreground">
-                                            XP Needed
-                                        </h3>
-                                        <p className="text-2xl font-bold text-green-700 dark:text-green-400">
-                                            {formatNumber(getRangeXpResult()!.xpNeeded)}
-                                        </p>
-                                    </div>
-                                    <div className="rounded-lg border p-4">
-                                        <h3 className="mb-1 text-sm font-medium text-muted-foreground">
-                                            Current Total XP
-                                        </h3>
-                                        <p className="text-2xl font-bold">
-                                            {formatNumber(getRangeXpResult()!.currentXp)}
-                                        </p>
-                                    </div>
-                                    <div className="rounded-lg border p-4">
-                                        <h3 className="mb-1 text-sm font-medium text-muted-foreground">
-                                            Target Total XP
-                                        </h3>
-                                        <p className="text-2xl font-bold">
-                                            {formatNumber(getRangeXpResult()!.targetXp)}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="relative h-3 overflow-hidden rounded-full bg-muted">
-                                    <div
-                                        className="h-full bg-green-500 transition-all duration-300"
-                                        style={{
-                                            width: `${getProgressPercentage(
-                                                getRangeXpResult()!.currentXp,
-                                                getRangeXpResult()!.targetXp,
-                                            )}%`,
-                                        }}
-                                    />
-                                </div>
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
-
-                <Card className="border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-transparent dark:border-blue-500/30">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-blue-700 dark:text-blue-400">
-                            <Sparkles className="size-5" />
-                            Bottles o' Enchanting Calculator
-                        </CardTitle>
-                        <CardDescription>
-                            Estimate bottles needed (avg 7 XP per bottle)
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        {getBottlesNeeded() !== null ? (
-                            <div className="rounded-lg border border-blue-500/20 bg-blue-500/10 p-4">
-                                <div className="flex flex-col gap-2">
-                                    <p className="text-sm font-medium text-blue-700 dark:text-blue-400">
-                                        Estimated Bottles Needed
+                            <div className="grid gap-4 sm:grid-cols-3">
+                                <div className="rounded-lg border p-4">
+                                    <h3 className="mb-1 text-sm font-medium text-muted-foreground">
+                                        XP Needed
+                                    </h3>
+                                    <p className="text-2xl font-bold text-green-700 dark:text-green-400">
+                                        {formatNumber(getRangeXpResult()!.xpNeeded)}
                                     </p>
-                                    <p className="text-3xl font-bold text-blue-700 dark:text-blue-300">
-                                        ~{formatNumber(getBottlesNeeded()!)} bottles
+                                </div>
+                                <div className="rounded-lg border p-4">
+                                    <h3 className="mb-1 text-sm font-medium text-muted-foreground">
+                                        Current Total XP
+                                    </h3>
+                                    <p className="text-2xl font-bold">
+                                        {formatNumber(getRangeXpResult()!.currentXp)}
                                     </p>
-                                    <p className="text-xs text-muted-foreground">
-                                        Each Bottle o' Enchanting gives 3-11 XP (average 7
-                                        XP)
+                                </div>
+                                <div className="rounded-lg border p-4">
+                                    <h3 className="mb-1 text-sm font-medium text-muted-foreground">
+                                        Target Total XP
+                                    </h3>
+                                    <p className="text-2xl font-bold">
+                                        {formatNumber(getRangeXpResult()!.targetXp)}
                                     </p>
                                 </div>
                             </div>
-                        ) : (
-                            <p className="text-sm text-muted-foreground">
-                                Enter current and target levels in the Level Range
-                                Calculator above to see estimated bottles needed.
-                            </p>
                         )}
                     </CardContent>
                 </Card>
@@ -491,54 +510,7 @@ export default function XpCalculator() {
                         </div>
                     </CardContent>
                 </Card>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>How XP Works in Minecraft</CardTitle>
-                        <CardDescription>
-                            Understanding the experience system
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex flex-col gap-4">
-                        <div className="flex flex-col gap-3">
-                            <h4 className="font-semibold">Level Formula</h4>
-                            <div className="flex flex-col gap-2 text-sm text-muted-foreground">
-                                <p>
-                                    <strong>Levels 0-16:</strong> XP = level² + 6 × level
-                                </p>
-                                <p>
-                                    <strong>Levels 17-31:</strong> XP = 2.5 × level² -
-                                    40.5 × level + 360
-                                </p>
-                                <p>
-                                    <strong>Levels 32+:</strong> XP = 4.5 × level² - 162.5
-                                    × level + 2220
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="flex flex-col gap-3">
-                            <h4 className="font-semibold">Enchanting Costs</h4>
-                            <p className="text-sm text-muted-foreground">
-                                Enchanting items costs 1-3 levels depending on the
-                                enchantment. Level 30 enchantments require a total of 1,395
-                                XP to reach level 30 from level 0. The XP bar represents
-                                progress toward the next level, not total XP accumulated.
-                            </p>
-                        </div>
-
-                        <div className="flex flex-col gap-3">
-                            <h4 className="font-semibold">Experience Orbs</h4>
-                            <p className="text-sm text-muted-foreground">
-                                XP orbs drop from killing mobs, mining certain ores,
-                                breeding animals, fishing, and trading with villagers. The
-                                orbs are automatically collected when you get close to them
-                                and will fly toward you.
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
+            </ToolLayout>
         </AppLayout>
     );
 }

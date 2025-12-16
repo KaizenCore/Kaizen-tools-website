@@ -12,6 +12,11 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
+    OutputPanel,
+    ToolLayout,
+    ToolSection,
+} from '@/components/tool-layout';
+import {
     formattingCodes,
     teamColors,
     teamOptions,

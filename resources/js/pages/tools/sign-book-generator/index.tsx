@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Toggle } from '@/components/ui/toggle';
+import { OutputPanel, ToolLayout } from '@/components/tool-layout';
 import {
     BOOK_CHAR_PER_PAGE,
     BOOK_PAGE_LIMIT,
@@ -232,21 +233,14 @@ export default function SignBookGenerator() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Sign & Book Generator" />
-
-            <div className="mx-auto max-w-screen-2xl p-4 sm:p-6">
-                <div className="mb-6 space-y-2">
-                    <h1 className="text-3xl font-bold tracking-tight">
-                        Minecraft Sign & Book Generator
-                    </h1>
-                    <p className="text-base text-muted-foreground">
-                        Create formatted signs and written books with custom colors and styles
-                    </p>
-                </div>
-
+            <ToolLayout
+                title="Minecraft Sign & Book Generator"
+                description="Create formatted signs and written books with custom colors and styles"
+            >
                 <Tabs
                     value={mode}
                     onValueChange={(value) => setMode(value as typeof mode)}
-                    className="space-y-6"
+                    className="flex flex-col gap-6"
                 >
                     <TabsList className="grid w-full max-w-md grid-cols-3">
                         <TabsTrigger value="sign">Sign</TabsTrigger>
@@ -1117,7 +1111,7 @@ export default function SignBookGenerator() {
                         </div>
                     </TabsContent>
                 </Tabs>
-            </div>
+            </ToolLayout>
         </AppLayout>
     );
 }

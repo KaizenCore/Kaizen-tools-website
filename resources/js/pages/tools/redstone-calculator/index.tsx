@@ -15,6 +15,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { OutputPanel, ToolLayout, ToolSection } from '@/components/tool-layout';
 import {
     calculateComparatorSignal,
     calculateItemsForSignal,
@@ -93,20 +94,209 @@ export default function RedstoneCalculator() {
         return { distance, strength };
     });
 
+    const sidebar = (
+        <>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Clock className="size-5" />
+                        Piston Timing Reference
+                    </CardTitle>
+                    <CardDescription>
+                        Standard piston behavior timings
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-3">
+                    <div className="flex items-center justify-between rounded-lg border bg-card p-3">
+                        <span className="font-medium">Extension Time</span>
+                        <div className="flex flex-col items-end">
+                            <span className="font-semibold">
+                                {pistonTimings.extension.ticks} ticks
+                            </span>
+                            <span className="text-sm text-muted-foreground">
+                                {pistonTimings.extension.seconds}s
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center justify-between rounded-lg border bg-card p-3">
+                        <span className="font-medium">Retraction Time</span>
+                        <div className="flex flex-col items-end">
+                            <span className="font-semibold">
+                                {pistonTimings.retraction.ticks} ticks
+                            </span>
+                            <span className="text-sm text-muted-foreground">
+                                {pistonTimings.retraction.seconds}s
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center justify-between rounded-lg border bg-card p-3">
+                        <span className="font-medium">BUD Delay</span>
+                        <div className="flex flex-col items-end">
+                            <span className="font-semibold">
+                                {pistonTimings.budDelay.ticks} ticks
+                            </span>
+                            <span className="text-sm text-muted-foreground">
+                                {pistonTimings.budDelay.seconds}s
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="flex items-start gap-3 rounded-lg border border-blue-500/20 bg-blue-500/10 p-3">
+                        <Info className="size-5 shrink-0 text-blue-700 dark:text-blue-400" />
+                        <div className="flex flex-col gap-1">
+                            <p className="text-sm">
+                                Pistons take 1.5 redstone ticks (3 game
+                                ticks) to extend or retract. BUD
+                                (Block Update Detector) mechanics use a
+                                2-tick delay.
+                            </p>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Zap className="size-5" />
+                        Power Sources
+                    </CardTitle>
+                    <CardDescription>
+                        Common redstone power sources and their strengths
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex flex-col gap-2">
+                        {powerSources.map((source) => (
+                            <div
+                                key={source.name}
+                                className="flex items-start justify-between rounded-lg border bg-card p-3"
+                            >
+                                <div className="flex flex-col gap-1">
+                                    <span className="font-medium">
+                                        {source.name}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
+                                        {source.description}
+                                    </span>
+                                </div>
+                                <span className="text-lg font-semibold text-[oklch(0.72_0.14_75)] dark:text-[oklch(0.75_0.15_75)]">
+                                    {source.strength}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Activity className="size-5" />
+                        Component Behaviors
+                    </CardTitle>
+                    <CardDescription>
+                        How redstone components work
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex flex-col gap-2">
+                        {components.map((component) => (
+                            <div
+                                key={component.name}
+                                className="flex flex-col gap-1 rounded-lg border bg-card p-3"
+                            >
+                                <span className="font-medium">
+                                    {component.name}
+                                </span>
+                                <span className="text-sm text-muted-foreground">
+                                    {component.behavior}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Lightbulb className="size-5" />
+                        Quick Tips
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-3">
+                    <div className="flex items-start gap-3">
+                        <AlertCircle className="size-5 shrink-0 text-blue-600 dark:text-blue-400" />
+                        <div className="flex flex-col gap-1">
+                            <h4 className="font-semibold">
+                                Signal Decay
+                            </h4>
+                            <p className="text-sm text-muted-foreground">
+                                Redstone wire loses 1 signal strength per
+                                block. Use repeaters every 15 blocks to
+                                maintain full strength.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                        <AlertCircle className="size-5 shrink-0 text-blue-600 dark:text-blue-400" />
+                        <div className="flex flex-col gap-1">
+                            <h4 className="font-semibold">
+                                Comparator Modes
+                            </h4>
+                            <p className="text-sm text-muted-foreground">
+                                Comparators have two modes: Compare (front
+                                torch off) and Subtract (front torch on).
+                                Click to toggle.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                        <AlertCircle className="size-5 shrink-0 text-blue-600 dark:text-blue-400" />
+                        <div className="flex flex-col gap-1">
+                            <h4 className="font-semibold">
+                                Instant vs Delayed
+                            </h4>
+                            <p className="text-sm text-muted-foreground">
+                                Redstone torches, comparators, and repeaters
+                                add delays. Direct power transfer is
+                                instant.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                        <AlertCircle className="size-5 shrink-0 text-blue-600 dark:text-blue-400" />
+                        <div className="flex flex-col gap-1">
+                            <h4 className="font-semibold">
+                                Powering vs Activating
+                            </h4>
+                            <p className="text-sm text-muted-foreground">
+                                Blocks can be "powered" (receive signal) or
+                                "activated" (directly connected). This
+                                affects how signals propagate.
+                            </p>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+        </>
+    );
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Redstone Calculator" />
-            <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto p-4 md:p-6">
-                <div className="flex flex-col gap-2">
-                    <h1 className="text-3xl font-bold">Redstone Calculator</h1>
-                    <p className="text-muted-foreground">
-                        Calculate signal strengths, comparator outputs, and timing
-                        for your redstone contraptions
-                    </p>
-                </div>
-
-                <div className="grid gap-6 lg:grid-cols-2">
-                    <div className="flex flex-col gap-6">
+            <ToolLayout
+                title="Redstone Calculator"
+                description="Calculate signal strengths, comparator outputs, and timing for your redstone contraptions"
+                sidebar={sidebar}
+            >
+                <ToolSection>
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
@@ -225,7 +415,9 @@ export default function RedstoneCalculator() {
                                 )}
                             </CardContent>
                         </Card>
+                </ToolSection>
 
+                <ToolSection>
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
@@ -335,7 +527,9 @@ export default function RedstoneCalculator() {
                                 </div>
                             </CardContent>
                         </Card>
+                </ToolSection>
 
+                <ToolSection>
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
@@ -417,201 +611,8 @@ export default function RedstoneCalculator() {
                                 </div>
                             </CardContent>
                         </Card>
-                    </div>
-
-                    <div className="flex flex-col gap-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Clock className="size-5" />
-                                    Piston Timing Reference
-                                </CardTitle>
-                                <CardDescription>
-                                    Standard piston behavior timings
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="flex flex-col gap-3">
-                                <div className="flex items-center justify-between rounded-lg border bg-card p-3">
-                                    <span className="font-medium">Extension Time</span>
-                                    <div className="flex flex-col items-end">
-                                        <span className="font-semibold">
-                                            {pistonTimings.extension.ticks} ticks
-                                        </span>
-                                        <span className="text-sm text-muted-foreground">
-                                            {pistonTimings.extension.seconds}s
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center justify-between rounded-lg border bg-card p-3">
-                                    <span className="font-medium">Retraction Time</span>
-                                    <div className="flex flex-col items-end">
-                                        <span className="font-semibold">
-                                            {pistonTimings.retraction.ticks} ticks
-                                        </span>
-                                        <span className="text-sm text-muted-foreground">
-                                            {pistonTimings.retraction.seconds}s
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center justify-between rounded-lg border bg-card p-3">
-                                    <span className="font-medium">BUD Delay</span>
-                                    <div className="flex flex-col items-end">
-                                        <span className="font-semibold">
-                                            {pistonTimings.budDelay.ticks} ticks
-                                        </span>
-                                        <span className="text-sm text-muted-foreground">
-                                            {pistonTimings.budDelay.seconds}s
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-start gap-3 rounded-lg border border-blue-500/20 bg-blue-500/10 p-3">
-                                    <Info className="size-5 shrink-0 text-blue-700 dark:text-blue-400" />
-                                    <div className="flex flex-col gap-1">
-                                        <p className="text-sm">
-                                            Pistons take 1.5 redstone ticks (3 game
-                                            ticks) to extend or retract. BUD
-                                            (Block Update Detector) mechanics use a
-                                            2-tick delay.
-                                        </p>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Zap className="size-5" />
-                                    Power Sources
-                                </CardTitle>
-                                <CardDescription>
-                                    Common redstone power sources and their strengths
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="flex flex-col gap-2">
-                                    {powerSources.map((source) => (
-                                        <div
-                                            key={source.name}
-                                            className="flex items-start justify-between rounded-lg border bg-card p-3"
-                                        >
-                                            <div className="flex flex-col gap-1">
-                                                <span className="font-medium">
-                                                    {source.name}
-                                                </span>
-                                                <span className="text-xs text-muted-foreground">
-                                                    {source.description}
-                                                </span>
-                                            </div>
-                                            <span className="text-lg font-semibold text-[oklch(0.72_0.14_75)] dark:text-[oklch(0.75_0.15_75)]">
-                                                {source.strength}
-                                            </span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Activity className="size-5" />
-                                    Component Behaviors
-                                </CardTitle>
-                                <CardDescription>
-                                    How redstone components work
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="flex flex-col gap-2">
-                                    {components.map((component) => (
-                                        <div
-                                            key={component.name}
-                                            className="flex flex-col gap-1 rounded-lg border bg-card p-3"
-                                        >
-                                            <span className="font-medium">
-                                                {component.name}
-                                            </span>
-                                            <span className="text-sm text-muted-foreground">
-                                                {component.behavior}
-                                            </span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Lightbulb className="size-5" />
-                                    Quick Tips
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="flex flex-col gap-3">
-                                <div className="flex items-start gap-3">
-                                    <AlertCircle className="size-5 shrink-0 text-blue-600 dark:text-blue-400" />
-                                    <div className="flex flex-col gap-1">
-                                        <h4 className="font-semibold">
-                                            Signal Decay
-                                        </h4>
-                                        <p className="text-sm text-muted-foreground">
-                                            Redstone wire loses 1 signal strength per
-                                            block. Use repeaters every 15 blocks to
-                                            maintain full strength.
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-start gap-3">
-                                    <AlertCircle className="size-5 shrink-0 text-blue-600 dark:text-blue-400" />
-                                    <div className="flex flex-col gap-1">
-                                        <h4 className="font-semibold">
-                                            Comparator Modes
-                                        </h4>
-                                        <p className="text-sm text-muted-foreground">
-                                            Comparators have two modes: Compare (front
-                                            torch off) and Subtract (front torch on).
-                                            Click to toggle.
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-start gap-3">
-                                    <AlertCircle className="size-5 shrink-0 text-blue-600 dark:text-blue-400" />
-                                    <div className="flex flex-col gap-1">
-                                        <h4 className="font-semibold">
-                                            Instant vs Delayed
-                                        </h4>
-                                        <p className="text-sm text-muted-foreground">
-                                            Redstone torches, comparators, and repeaters
-                                            add delays. Direct power transfer is
-                                            instant.
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-start gap-3">
-                                    <AlertCircle className="size-5 shrink-0 text-blue-600 dark:text-blue-400" />
-                                    <div className="flex flex-col gap-1">
-                                        <h4 className="font-semibold">
-                                            Powering vs Activating
-                                        </h4>
-                                        <p className="text-sm text-muted-foreground">
-                                            Blocks can be "powered" (receive signal) or
-                                            "activated" (directly connected). This
-                                            affects how signals propagate.
-                                        </p>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
-            </div>
+                </ToolSection>
+            </ToolLayout>
         </AppLayout>
     );
 }

@@ -41,6 +41,7 @@ import {
     Users,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { OutputPanel, ToolLayout } from '@/components/tool-layout';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -333,30 +334,171 @@ export default function CommandGenerator() {
         {} as Record<string, typeof items>,
     );
 
+    const sidebar = (
+        <>
+            <OutputPanel
+                title="Generated Command"
+                actions={
+                    <Select
+                        value={syntaxMode}
+                        onValueChange={(value) => {
+                            setSyntaxMode(value as 'java' | 'bedrock');
+                        }}
+                    >
+                        <SelectTrigger className="h-8 w-32">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="java">Java</SelectItem>
+                            <SelectItem value="bedrock">Bedrock</SelectItem>
+                        </SelectContent>
+                    </Select>
+                }
+            >
+                <div className="overflow-x-auto rounded-lg border bg-muted/50 p-3">
+                    <code className="block break-all font-mono text-xs text-[oklch(0.72_0.14_75)] dark:text-[oklch(0.75_0.15_75)]">
+                        {getCurrentCommand()}
+                    </code>
+                </div>
+
+                <div className="flex gap-2">
+                    <Button onClick={copyCommand} className="flex-1">
+                        {copied ? (
+                            <>
+                                <Check className="mr-2 size-4" />
+                                Copied!
+                            </>
+                        ) : (
+                            <>
+                                <Copy className="mr-2 size-4" />
+                                Copy
+                            </>
+                        )}
+                    </Button>
+                    <Button
+                        onClick={resetCurrentTab}
+                        variant="outline"
+                        className="flex-1"
+                    >
+                        <RotateCcw className="mr-2 size-4" />
+                        Reset
+                    </Button>
+                </div>
+            </OutputPanel>
+
+            <Card>
+                <CardHeader>
+                    <div className="flex items-center justify-between">
+                        <CardTitle className="flex items-center gap-2">
+                            <Clock className="size-5" />
+                            Command History
+                        </CardTitle>
+                        {commandHistory.length > 0 && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={clearHistory}
+                            >
+                                <Trash2 className="mr-2 size-4" />
+                                Clear
+                            </Button>
+                        )}
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    {commandHistory.length === 0 ? (
+                        <p className="text-center text-sm text-muted-foreground">
+                            No commands generated yet
+                        </p>
+                    ) : (
+                        <div className="space-y-2">
+                            {commandHistory.map((item) => (
+                                <div
+                                    key={item.id}
+                                    className="group relative rounded-lg border bg-muted/30 p-3 transition-all hover:bg-muted/50"
+                                >
+                                    <div className="mb-1 flex items-center justify-between">
+                                        <span className="text-xs font-medium uppercase text-muted-foreground">
+                                            {item.type}
+                                        </span>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="size-8 p-0 opacity-0 transition-opacity group-hover:opacity-100"
+                                            onClick={async () => {
+                                                await navigator.clipboard.writeText(
+                                                    item.command,
+                                                );
+                                                setCopied(true);
+                                                setTimeout(() => {
+                                                    setCopied(false);
+                                                }, 2000);
+                                            }}
+                                        >
+                                            <Copy className="size-4" />
+                                        </Button>
+                                    </div>
+                                    <code className="block break-all font-mono text-xs">
+                                        {item.command}
+                                    </code>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>How to Use</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm text-muted-foreground">
+                    <div>
+                        <strong className="text-foreground">1. Select command type</strong>
+                        <p>Choose from Give, Summon, Effect, Teleport, or Gamemode.</p>
+                    </div>
+                    <div>
+                        <strong className="text-foreground">2. Configure options</strong>
+                        <p>
+                            Fill in the parameters specific to your selected command
+                            type.
+                        </p>
+                    </div>
+                    <div>
+                        <strong className="text-foreground">3. Copy command</strong>
+                        <p>
+                            Click the Copy button to copy the generated command to your
+                            clipboard.
+                        </p>
+                    </div>
+                    <div>
+                        <strong className="text-foreground">4. Use in Minecraft</strong>
+                        <p>
+                            Paste the command in your Minecraft chat (press T or /) and
+                            execute it.
+                        </p>
+                    </div>
+                </CardContent>
+            </Card>
+        </>
+    );
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Minecraft Command Generator" />
-
-            <div className="mx-auto max-w-screen-2xl p-4 sm:p-6">
-                <div className="mb-6 space-y-2">
-                    <h1 className="text-3xl font-bold tracking-tight">
-                        Minecraft Command Generator
-                    </h1>
-                    <p className="text-base text-muted-foreground">
-                        Generate complex Minecraft commands with an easy-to-use interface
-                    </p>
-                </div>
-
-                <div className="grid gap-6 lg:grid-cols-[1fr,400px]">
-                    <div className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Command Type</CardTitle>
-                                <CardDescription>
-                                    Select the type of command you want to generate
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
+            <ToolLayout
+                title="Minecraft Command Generator"
+                description="Generate complex Minecraft commands with an easy-to-use interface"
+                sidebar={sidebar}
+            >
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Command Type</CardTitle>
+                        <CardDescription>
+                            Select the type of command you want to generate
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
                                 <Tabs value={activeTab} onValueChange={setActiveTab}>
                                     <TabsList className="grid w-full grid-cols-5">
                                         <TabsTrigger value="give">
@@ -809,168 +951,9 @@ export default function CommandGenerator() {
                                         </div>
                                     </TabsContent>
                                 </Tabs>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    <div className="space-y-6">
-                        <Card className="border-[oklch(0.72_0.14_75)] bg-gradient-to-br from-[oklch(0.72_0.14_75)]/10 to-transparent dark:border-[oklch(0.75_0.15_75)] dark:from-[oklch(0.75_0.15_75)]/10">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Database className="size-5" />
-                                    Generated Command
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label>Syntax Mode</Label>
-                                    <Select
-                                        value={syntaxMode}
-                                        onValueChange={(value) => {
-                                            setSyntaxMode(value as 'java' | 'bedrock');
-                                        }}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="java">Java Edition</SelectItem>
-                                            <SelectItem value="bedrock">
-                                                Bedrock Edition
-                                            </SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                <div className="overflow-x-auto rounded-lg border bg-muted/50 p-3">
-                                    <code className="block break-all font-mono text-xs text-[oklch(0.72_0.14_75)] dark:text-[oklch(0.75_0.15_75)]">
-                                        {getCurrentCommand()}
-                                    </code>
-                                </div>
-
-                                <div className="flex gap-2">
-                                    <Button onClick={copyCommand} className="flex-1">
-                                        {copied ? (
-                                            <>
-                                                <Check className="mr-2 size-4" />
-                                                Copied!
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Copy className="mr-2 size-4" />
-                                                Copy
-                                            </>
-                                        )}
-                                    </Button>
-                                    <Button
-                                        onClick={resetCurrentTab}
-                                        variant="outline"
-                                        className="flex-1"
-                                    >
-                                        <RotateCcw className="mr-2 size-4" />
-                                        Reset
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <div className="flex items-center justify-between">
-                                    <CardTitle className="flex items-center gap-2">
-                                        <Clock className="size-5" />
-                                        Command History
-                                    </CardTitle>
-                                    {commandHistory.length > 0 && (
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={clearHistory}
-                                        >
-                                            <Trash2 className="mr-2 size-4" />
-                                            Clear
-                                        </Button>
-                                    )}
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                {commandHistory.length === 0 ? (
-                                    <p className="text-center text-sm text-muted-foreground">
-                                        No commands generated yet
-                                    </p>
-                                ) : (
-                                    <div className="space-y-2">
-                                        {commandHistory.map((item) => (
-                                            <div
-                                                key={item.id}
-                                                className="group relative rounded-lg border bg-muted/30 p-3 transition-all hover:bg-muted/50"
-                                            >
-                                                <div className="mb-1 flex items-center justify-between">
-                                                    <span className="text-xs font-medium uppercase text-muted-foreground">
-                                                        {item.type}
-                                                    </span>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="size-8 p-0 opacity-0 transition-opacity group-hover:opacity-100"
-                                                        onClick={async () => {
-                                                            await navigator.clipboard.writeText(
-                                                                item.command,
-                                                            );
-                                                            setCopied(true);
-                                                            setTimeout(() => {
-                                                                setCopied(false);
-                                                            }, 2000);
-                                                        }}
-                                                    >
-                                                        <Copy className="size-4" />
-                                                    </Button>
-                                                </div>
-                                                <code className="block break-all font-mono text-xs">
-                                                    {item.command}
-                                                </code>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>How to Use</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-3 text-sm text-muted-foreground">
-                                <div>
-                                    <strong className="text-foreground">1. Select command type</strong>
-                                    <p>Choose from Give, Summon, Effect, Teleport, or Gamemode.</p>
-                                </div>
-                                <div>
-                                    <strong className="text-foreground">2. Configure options</strong>
-                                    <p>
-                                        Fill in the parameters specific to your selected command
-                                        type.
-                                    </p>
-                                </div>
-                                <div>
-                                    <strong className="text-foreground">3. Copy command</strong>
-                                    <p>
-                                        Click the Copy button to copy the generated command to your
-                                        clipboard.
-                                    </p>
-                                </div>
-                                <div>
-                                    <strong className="text-foreground">4. Use in Minecraft</strong>
-                                    <p>
-                                        Paste the command in your Minecraft chat (press T or /) and
-                                        execute it.
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
-            </div>
+                    </CardContent>
+                </Card>
+            </ToolLayout>
         </AppLayout>
     );
 }

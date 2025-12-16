@@ -12,6 +12,11 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
+    OutputPanel,
+    ToolLayout,
+    ToolSection,
+} from '@/components/tool-layout';
+import {
     type Effect,
     type EffectCategory,
     type EffectPreset,
@@ -206,23 +211,101 @@ export default function EffectGenerator() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Effect Generator" />
-            <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto p-4 md:p-6">
-                <div className="flex flex-col gap-2">
-                    <h1 className="text-3xl font-bold">Minecraft Effect Command Generator</h1>
-                    <p className="text-muted-foreground">
-                        Generate commands to give or clear status effects
-                    </p>
+
+            {copiedMessage && (
+                <div className="fixed right-4 top-20 z-50 flex items-center gap-2 rounded-lg border border-green-500/20 bg-green-500/10 p-3 text-sm text-green-700 shadow-lg dark:text-green-400">
+                    <Check className="size-4" />
+                    {copiedMessage}
                 </div>
+            )}
 
-                {copiedMessage && (
-                    <div className="flex items-center gap-2 rounded-lg border border-green-500/20 bg-green-500/10 p-3 text-sm text-green-700 dark:text-green-400">
-                        <Check className="size-4" />
-                        {copiedMessage}
-                    </div>
-                )}
-
-                <div className="grid gap-6 lg:grid-cols-3">
-                    <div className="lg:col-span-2">
+            <ToolLayout
+                title="Minecraft Effect Command Generator"
+                description="Generate commands to give or clear status effects"
+                output={
+                    <OutputPanel
+                        title="Generated Command"
+                        command={getGeneratedCommand()}
+                        onCopy={() => copyCommand(getGeneratedCommand())}
+                        copied={false}
+                        disabled={commandType !== 'clear_all' && !selectedEffect}
+                    >
+                        {multipleEffects.length > 0 && (
+                            <div className="space-y-4">
+                                <div>
+                                    <h4 className="mb-2 text-sm font-medium">
+                                        Multiple Effects ({multipleEffects.length})
+                                    </h4>
+                                    <div className="flex flex-col gap-2">
+                                        {multipleEffects.map((se, index) => (
+                                            <div
+                                                key={index}
+                                                className="flex items-center gap-2 rounded-lg border p-2"
+                                            >
+                                                <div
+                                                    className="size-3 shrink-0 rounded"
+                                                    style={{
+                                                        backgroundColor: se.effect.color,
+                                                    }}
+                                                />
+                                                <div className="flex-1 text-sm">
+                                                    <div className="font-medium">
+                                                        {se.effect.name}
+                                                    </div>
+                                                    <div className="text-xs text-muted-foreground">
+                                                        {se.infinite
+                                                            ? 'Infinite'
+                                                            : `${se.duration}s`}{' '}
+                                                        • Level {formatAmplifier(se.amplifier)}
+                                                    </div>
+                                                </div>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => removeFromMultiple(index)}
+                                                >
+                                                    <Trash2 className="size-4" />
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <Button
+                                        onClick={copyAllCommands}
+                                        className="mt-3 w-full"
+                                    >
+                                        <Copy className="size-4" />
+                                        Copy All Commands
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+                    </OutputPanel>
+                }
+                sidebar={
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Presets</CardTitle>
+                            <CardDescription>Quick effect combinations</CardDescription>
+                        </CardHeader>
+                        <CardContent className="flex flex-col gap-2">
+                            {effectPresets.map((preset) => (
+                                <Button
+                                    key={preset.name}
+                                    variant="outline"
+                                    onClick={() => applyPreset(preset)}
+                                    className="h-auto flex-col items-start gap-1 py-3"
+                                >
+                                    <div className="font-medium">{preset.name}</div>
+                                    <div className="text-xs text-muted-foreground">
+                                        {preset.description}
+                                    </div>
+                                </Button>
+                            ))}
+                        </CardContent>
+                    </Card>
+                }
+            >
+                <ToolSection>
                         <Card>
                             <CardHeader>
                                 <CardTitle>Command Type</CardTitle>
@@ -552,118 +635,9 @@ export default function EffectGenerator() {
                                 )}
                             </>
                         )}
-                    </div>
+                </ToolSection>
 
-                    <div className="flex flex-col gap-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Presets</CardTitle>
-                                <CardDescription>Quick effect combinations</CardDescription>
-                            </CardHeader>
-                            <CardContent className="flex flex-col gap-2">
-                                {effectPresets.map((preset) => (
-                                    <Button
-                                        key={preset.name}
-                                        variant="outline"
-                                        onClick={() => {
-                                            applyPreset(preset);
-                                        }}
-                                        className="h-auto flex-col items-start gap-1 py-3"
-                                    >
-                                        <div className="font-medium">{preset.name}</div>
-                                        <div className="text-xs text-muted-foreground">
-                                            {preset.description}
-                                        </div>
-                                    </Button>
-                                ))}
-                            </CardContent>
-                        </Card>
-
-                        {multipleEffects.length > 0 && (
-                            <Card>
-                                <CardHeader>
-                                    <div className="flex items-center justify-between">
-                                        <CardTitle>Multiple Effects</CardTitle>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => {
-                                                setMultipleEffects([]);
-                                            }}
-                                        >
-                                            <X className="size-4" />
-                                            Clear
-                                        </Button>
-                                    </div>
-                                    <CardDescription>
-                                        {multipleEffects.length} effect(s) added
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent className="flex flex-col gap-2">
-                                    {multipleEffects.map((se, index) => (
-                                        <div
-                                            key={index}
-                                            className="flex items-center gap-2 rounded-lg border p-2"
-                                        >
-                                            <div
-                                                className="size-3 shrink-0 rounded"
-                                                style={{ backgroundColor: se.effect.color }}
-                                            />
-                                            <div className="flex-1 text-sm">
-                                                <div className="font-medium">{se.effect.name}</div>
-                                                <div className="text-xs text-muted-foreground">
-                                                    {se.infinite ? 'Infinite' : `${se.duration}s`} •
-                                                    Level {formatAmplifier(se.amplifier)}
-                                                </div>
-                                            </div>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => {
-                                                    removeFromMultiple(index);
-                                                }}
-                                            >
-                                                <Trash2 className="size-4" />
-                                            </Button>
-                                        </div>
-                                    ))}
-                                    <Button onClick={copyAllCommands} className="mt-2 w-full">
-                                        <Copy className="size-4" />
-                                        Copy All Commands
-                                    </Button>
-                                </CardContent>
-                            </Card>
-                        )}
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Generated Command</CardTitle>
-                                <CardDescription>
-                                    Copy this command to use in Minecraft
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="flex flex-col gap-4">
-                                <div className="rounded-lg border bg-muted/50 p-3">
-                                    <code className="break-all text-sm">
-                                        {getGeneratedCommand()}
-                                    </code>
-                                </div>
-                                <Button
-                                    onClick={() => {
-                                        copyCommand(getGeneratedCommand());
-                                    }}
-                                    disabled={
-                                        commandType !== 'clear_all' && !selectedEffect
-                                    }
-                                >
-                                    <Copy className="size-4" />
-                                    Copy Command
-                                </Button>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
-
+                <ToolSection>
                 <Card>
                     <CardHeader>
                         <CardTitle>Effect Command Syntax</CardTitle>
@@ -737,7 +711,8 @@ export default function EffectGenerator() {
                         </div>
                     </CardContent>
                 </Card>
-            </div>
+                </ToolSection>
+            </ToolLayout>
         </AppLayout>
     );
 }

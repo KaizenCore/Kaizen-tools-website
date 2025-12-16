@@ -18,6 +18,7 @@ import {
     TabsList,
     TabsTrigger,
 } from '@/components/ui/tabs';
+import { OutputPanel, ToolLayout } from '@/components/tool-layout';
 import {
     bossbarColors,
     bossbarPresets,
@@ -226,22 +227,97 @@ export default function BossbarGenerator() {
         );
     };
 
+    const sidebar = (
+        <>
+            <OutputPanel
+                title="Generated Command"
+                actions={
+                    <div className="flex gap-2">
+                        <Button onClick={copyCommand} variant="ghost" size="sm" disabled={copied}>
+                            {copied ? (
+                                <>
+                                    <Check className="mr-1 size-3" />
+                                    Copied
+                                </>
+                            ) : (
+                                <>
+                                    <Copy className="mr-1 size-3" />
+                                    Copy
+                                </>
+                            )}
+                        </Button>
+                        <Button onClick={reset} variant="ghost" size="sm">
+                            <RotateCcw className="mr-1 size-3" />
+                            Reset
+                        </Button>
+                    </div>
+                }
+            >
+                <div className="overflow-x-auto rounded-lg border bg-muted/50 p-3">
+                    <code className="block break-all font-mono text-xs">
+                        {generateCommand()}
+                    </code>
+                </div>
+            </OutputPanel>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Quick Presets</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                    {bossbarPresets.map((preset, index) => (
+                        <button
+                            key={index}
+                            type="button"
+                            onClick={() => loadPreset(preset)}
+                            className="flex w-full flex-col gap-1 rounded-lg border p-3 text-left transition-colors hover:bg-muted"
+                        >
+                            <div className="font-medium">{preset.name}</div>
+                            <div className="text-sm text-muted-foreground">
+                                {preset.description}
+                            </div>
+                        </button>
+                    ))}
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>How to Use</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm text-muted-foreground">
+                    <div>
+                        <strong className="text-foreground">1. Create bossbar</strong>
+                        <p>Start by creating a bossbar with a unique ID</p>
+                    </div>
+                    <Separator />
+                    <div>
+                        <strong className="text-foreground">2. Configure</strong>
+                        <p>Use the Set tab to customize name, color, style, and properties</p>
+                    </div>
+                    <Separator />
+                    <div>
+                        <strong className="text-foreground">3. Control</strong>
+                        <p>Use Get/Remove tabs to query or delete bossbars</p>
+                    </div>
+                    <Separator />
+                    <div>
+                        <strong className="text-foreground">4. Copy & use</strong>
+                        <p>Copy the generated command and run it in your server</p>
+                    </div>
+                </CardContent>
+            </Card>
+        </>
+    );
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Bossbar Generator" />
-
-            <div className="mx-auto max-w-screen-2xl p-4 sm:p-6">
-                <div className="mb-6 space-y-2">
-                    <h1 className="text-3xl font-bold tracking-tight">
-                        Minecraft Bossbar Generator
-                    </h1>
-                    <p className="text-base text-muted-foreground">
-                        Create and customize bossbars for your Minecraft server
-                    </p>
-                </div>
-
-                <div className="grid gap-6 lg:grid-cols-[1fr,400px]">
-                    <div className="space-y-6">
+            <ToolLayout
+                title="Minecraft Bossbar Generator"
+                description="Create and customize bossbars for your Minecraft server"
+                sidebar={sidebar}
+            >
                         <Tabs defaultValue="create" className="w-full">
                             <TabsList className="grid w-full grid-cols-4">
                                 <TabsTrigger value="create">Create</TabsTrigger>
@@ -762,123 +838,7 @@ export default function BossbarGenerator() {
                                 </Card>
                             </TabsContent>
                         </Tabs>
-                    </div>
-
-                    <div className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Preview</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="rounded-lg border bg-gradient-to-b from-slate-800 to-slate-900 p-8">
-                                    {renderBossbarPreview()}
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Format Codes</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-2">
-                                    <div>
-                                        <h4 className="mb-2 text-sm font-medium">Colors</h4>
-                                        <div className="grid grid-cols-4 gap-1">
-                                            {minecraftFormatCodes
-                                                .filter((f) => f.type === 'color')
-                                                .map((code) => (
-                                                    <button
-                                                        key={code.code}
-                                                        type="button"
-                                                        onClick={() =>
-                                                            setDisplayName(
-                                                                displayName + code.code,
-                                                            )
-                                                        }
-                                                        className="rounded border p-1 text-xs transition-colors hover:bg-muted"
-                                                        style={{ color: code.hex }}
-                                                        title={code.name}
-                                                    >
-                                                        {code.code}
-                                                    </button>
-                                                ))}
-                                        </div>
-                                    </div>
-                                    <Separator />
-                                    <div>
-                                        <h4 className="mb-2 text-sm font-medium">Formatting</h4>
-                                        <div className="grid grid-cols-3 gap-1">
-                                            {minecraftFormatCodes
-                                                .filter((f) => f.type === 'format')
-                                                .map((code) => (
-                                                    <button
-                                                        key={code.code}
-                                                        type="button"
-                                                        onClick={() =>
-                                                            setDisplayName(
-                                                                displayName + code.code,
-                                                            )
-                                                        }
-                                                        className="rounded border p-1 text-xs transition-colors hover:bg-muted"
-                                                        title={code.name}
-                                                    >
-                                                        {code.code}
-                                                    </button>
-                                                ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>How to Use</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-3 text-sm text-muted-foreground">
-                                <div>
-                                    <strong className="text-foreground">
-                                        1. Configure your bossbar
-                                    </strong>
-                                    <p>
-                                        Set the ID, display name, color, style, and other
-                                        properties.
-                                    </p>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <strong className="text-foreground">
-                                        2. Copy the commands
-                                    </strong>
-                                    <p>
-                                        Click "Copy" to get all setup commands for your bossbar.
-                                    </p>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <strong className="text-foreground">
-                                        3. Paste in Minecraft
-                                    </strong>
-                                    <p>
-                                        Run the commands in your Minecraft server or command
-                                        blocks.
-                                    </p>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <strong className="text-foreground">
-                                        4. Modify as needed
-                                    </strong>
-                                    <p>
-                                        Use the Modify tab to change properties after creation.
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
-            </div>
+            </ToolLayout>
         </AppLayout>
     );
 }

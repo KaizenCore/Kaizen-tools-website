@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ToolLayout, ToolSection } from '@/components/tool-layout';
 import {
     biomes,
     categories,
@@ -114,14 +115,10 @@ export default function BiomeGuide() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Biome Guide" />
-            <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto p-4 md:p-6">
-                <div className="flex flex-col gap-2">
-                    <h1 className="text-3xl font-bold">Minecraft Biome Guide</h1>
-                    <p className="text-muted-foreground">
-                        Explore all Minecraft biomes with detailed information about structures, mobs,
-                        and features
-                    </p>
-                </div>
+            <ToolLayout
+                title="Minecraft Biome Guide"
+                description="Explore all Minecraft biomes with detailed information about structures, mobs, and features"
+            >
 
                 <Card className="border-[oklch(0.72_0.14_75)]/20 bg-gradient-to-br from-[oklch(0.72_0.14_75)]/10 to-transparent dark:border-[oklch(0.75_0.15_75)]/30">
                     <CardHeader>
@@ -485,7 +482,7 @@ export default function BiomeGuide() {
                         </div>
                     </CardContent>
                 </Card>
-            </div>
+            </ToolLayout>
         </AppLayout>
     );
 }

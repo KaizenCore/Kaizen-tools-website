@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ToolLayout } from '@/components/tool-layout';
 import {
     CHUNK_SIZE,
     SPAWN_CHUNK_RADIUS,
@@ -160,20 +161,18 @@ export default function CoordinateCalculator() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Coordinate Calculator" />
-            <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto p-4 md:p-6">
-                <div className="flex flex-col gap-2">
-                    <h1 className="text-3xl font-bold">Coordinate Calculator</h1>
-                    <p className="text-muted-foreground">
-                        Calculate chunk boundaries, region files, and spawn chunk locations
-                    </p>
-                </div>
-
-                {copiedMessage && (
-                    <div className="flex items-center gap-2 rounded-lg border border-green-500/20 bg-green-500/10 p-3 text-sm text-green-700 dark:text-green-400">
-                        <CheckCircle2 className="size-4" />
-                        {copiedMessage}
-                    </div>
-                )}
+            <ToolLayout
+                title="Coordinate Calculator"
+                description="Calculate chunk boundaries, region files, and spawn chunk locations"
+                alerts={
+                    copiedMessage && (
+                        <div className="flex items-center gap-2 rounded-lg border border-green-500/20 bg-green-500/10 p-3 text-sm text-green-700 dark:text-green-400">
+                            <CheckCircle2 className="size-4" />
+                            {copiedMessage}
+                        </div>
+                    )
+                }
+            >
 
                 <Card className="border-[oklch(0.72_0.14_75)]/20 bg-gradient-to-br from-[oklch(0.72_0.14_75)]/5 to-transparent dark:border-[oklch(0.72_0.14_75)]/30">
                     <CardHeader>
@@ -672,7 +671,7 @@ export default function CoordinateCalculator() {
                         </div>
                     </CardContent>
                 </Card>
-            </div>
+            </ToolLayout>
         </AppLayout>
     );
 }

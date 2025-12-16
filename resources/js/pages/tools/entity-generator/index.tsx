@@ -19,6 +19,11 @@ import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
+    OutputPanel,
+    ToolLayout,
+    ToolSection,
+} from '@/components/tool-layout';
+import {
     attributes,
     entityCategories,
     entityPresets,
@@ -389,18 +394,117 @@ export default function EntityGenerator() {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Entity Generator" />
 
-            <div className="mx-auto max-w-screen-2xl p-4 sm:p-6">
-                <div className="mb-6 space-y-2">
-                    <h1 className="text-3xl font-bold tracking-tight">
-                        Minecraft Entity Summon Generator
-                    </h1>
-                    <p className="text-base text-muted-foreground">
-                        Generate custom entity summon commands with NBT data
-                    </p>
-                </div>
-
-                <div className="grid gap-6 lg:grid-cols-[1fr,400px]">
+            <ToolLayout
+                title="Minecraft Entity Summon Generator"
+                description="Generate custom entity summon commands with NBT data"
+                output={
+                    selectedEntity && (
+                        <OutputPanel
+                            title="Generated Command"
+                            command={generateCommand()}
+                            onCopy={copyCommand}
+                            copied={copied}
+                            additionalActions={
+                                <Button
+                                    onClick={reset}
+                                    variant="outline"
+                                    className="w-full"
+                                >
+                                    <RotateCcw className="size-4" />
+                                    Reset
+                                </Button>
+                            }
+                        >
+                            <div className="space-y-4">
+                                <div>
+                                    <h4 className="mb-2 text-sm font-medium">
+                                        NBT Preview
+                                    </h4>
+                                    <div className="max-h-64 overflow-auto rounded-lg border bg-muted/50 p-3">
+                                        <pre className="font-mono text-xs">
+                                            {JSON.stringify(nbtData, null, 2)}
+                                        </pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </OutputPanel>
+                    )
+                }
+                sidebar={
                     <div className="space-y-6">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Presets</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-2">
+                                {entityPresets.map((preset) => (
+                                    <button
+                                        key={preset.id}
+                                        type="button"
+                                        onClick={() => applyPreset(preset.id)}
+                                        className="w-full rounded-lg border p-3 text-left transition-all hover:bg-muted"
+                                    >
+                                        <div className="font-medium">
+                                            {preset.name}
+                                        </div>
+                                        <div className="text-xs text-muted-foreground">
+                                            {preset.description}
+                                        </div>
+                                    </button>
+                                ))}
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>How to Use</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-3 text-sm text-muted-foreground">
+                                <div>
+                                    <strong className="text-foreground">
+                                        1. Select an entity
+                                    </strong>
+                                    <p>
+                                        Choose from 100+ summonable entities
+                                        organized by category.
+                                    </p>
+                                </div>
+                                <Separator />
+                                <div>
+                                    <strong className="text-foreground">
+                                        2. Configure position
+                                    </strong>
+                                    <p>
+                                        Set the X, Y, Z coordinates where the
+                                        entity will spawn.
+                                    </p>
+                                </div>
+                                <Separator />
+                                <div>
+                                    <strong className="text-foreground">
+                                        3. Customize with NBT
+                                    </strong>
+                                    <p>
+                                        Add custom name, equipment, potion
+                                        effects, attributes, and more.
+                                    </p>
+                                </div>
+                                <Separator />
+                                <div>
+                                    <strong className="text-foreground">
+                                        4. Copy and use
+                                    </strong>
+                                    <p>
+                                        Copy the command and paste it in
+                                        Minecraft to summon your custom entity.
+                                    </p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                }
+            >
+                <ToolSection>
                         <Card>
                             <CardHeader>
                                 <CardTitle>Select Entity</CardTitle>
@@ -1415,143 +1519,8 @@ export default function EntityGenerator() {
                                 </Card>
                             </>
                         )}
-                    </div>
-
-                    <div className="space-y-6">
-                        {selectedEntity && (
-                            <>
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle>Generated Command</CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="space-y-4">
-                                        <div className="max-h-64 overflow-auto rounded-lg border bg-muted/50 p-3">
-                                            <code className="block break-all font-mono text-xs">
-                                                {generateCommand()}
-                                            </code>
-                                        </div>
-
-                                        <div className="flex gap-2">
-                                            <Button
-                                                onClick={copyCommand}
-                                                className="flex-1"
-                                                disabled={copied}
-                                            >
-                                                {copied ? (
-                                                    <>
-                                                        <Check className="mr-2 size-4" />
-                                                        Copied!
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Copy className="mr-2 size-4" />
-                                                        Copy
-                                                    </>
-                                                )}
-                                            </Button>
-                                            <Button
-                                                onClick={reset}
-                                                variant="outline"
-                                                className="flex-1"
-                                            >
-                                                <RotateCcw className="mr-2 size-4" />
-                                                Reset
-                                            </Button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle>NBT Preview</CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="max-h-96 overflow-auto rounded-lg border bg-muted/50 p-3">
-                                            <pre className="font-mono text-xs">
-                                                {JSON.stringify(
-                                                    nbtData,
-                                                    null,
-                                                    2,
-                                                )}
-                                            </pre>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </>
-                        )}
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Presets</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-2">
-                                {entityPresets.map((preset) => (
-                                    <button
-                                        key={preset.id}
-                                        type="button"
-                                        onClick={() => applyPreset(preset.id)}
-                                        className="w-full rounded-lg border p-3 text-left transition-all hover:bg-muted"
-                                    >
-                                        <div className="font-medium">
-                                            {preset.name}
-                                        </div>
-                                        <div className="text-xs text-muted-foreground">
-                                            {preset.description}
-                                        </div>
-                                    </button>
-                                ))}
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>How to Use</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-3 text-sm text-muted-foreground">
-                                <div>
-                                    <strong className="text-foreground">
-                                        1. Select an entity
-                                    </strong>
-                                    <p>
-                                        Choose from 100+ summonable entities
-                                        organized by category.
-                                    </p>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <strong className="text-foreground">
-                                        2. Configure position
-                                    </strong>
-                                    <p>
-                                        Set the X, Y, Z coordinates where the
-                                        entity will spawn.
-                                    </p>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <strong className="text-foreground">
-                                        3. Customize with NBT
-                                    </strong>
-                                    <p>
-                                        Add custom name, equipment, potion
-                                        effects, attributes, and more.
-                                    </p>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <strong className="text-foreground">
-                                        4. Copy and use
-                                    </strong>
-                                    <p>
-                                        Copy the command and paste it in
-                                        Minecraft to summon your custom entity.
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
-            </div>
+                </ToolSection>
+            </ToolLayout>
         </AppLayout>
     );
 }

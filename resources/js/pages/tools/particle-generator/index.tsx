@@ -18,6 +18,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { OutputPanel, ToolLayout } from '@/components/tool-layout';
 import {
     commonBlocks,
     commonItems,
@@ -434,406 +435,396 @@ export default function ParticleGenerator() {
         return null;
     };
 
+    const sidebar = (
+        <>
+            <OutputPanel
+                title="Command Output"
+                actions={
+                    <div className="flex gap-2">
+                        <Button
+                            onClick={copyCommand}
+                            variant="ghost"
+                            size="sm"
+                            disabled={copied}
+                        >
+                            {copied ? (
+                                <>
+                                    <Check className="mr-1 size-3" />
+                                    Copied
+                                </>
+                            ) : (
+                                <>
+                                    <Copy className="mr-1 size-3" />
+                                    Copy
+                                </>
+                            )}
+                        </Button>
+                        <Button
+                            onClick={reset}
+                            variant="ghost"
+                            size="sm"
+                        >
+                            <RotateCcw className="mr-1 size-3" />
+                            Reset
+                        </Button>
+                    </div>
+                }
+            >
+                <div className="overflow-x-auto rounded-lg border bg-muted/50 p-3">
+                    <code className="block break-all font-mono text-xs">
+                        {generateCommand()}
+                    </code>
+                </div>
+            </OutputPanel>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Presets</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                    {presets.map((preset, index) => (
+                        <button
+                            key={index}
+                            type="button"
+                            onClick={() => loadPreset(preset)}
+                            className="flex w-full flex-col gap-1 rounded-lg border p-3 text-left transition-colors hover:bg-muted"
+                        >
+                            <div className="font-medium">
+                                {preset.name}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                                {preset.description}
+                            </div>
+                        </button>
+                    ))}
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>How to Use</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm text-muted-foreground">
+                    <div>
+                        <strong className="text-foreground">
+                            1. Choose a particle
+                        </strong>
+                        <p>
+                            Search or filter by category to find the
+                            perfect particle effect.
+                        </p>
+                    </div>
+                    <Separator />
+                    <div>
+                        <strong className="text-foreground">
+                            2. Set position and spread
+                        </strong>
+                        <p>
+                            Use coordinates for position and delta
+                            values to control the spread area.
+                        </p>
+                    </div>
+                    <Separator />
+                    <div>
+                        <strong className="text-foreground">
+                            3. Adjust properties
+                        </strong>
+                        <p>
+                            Configure speed, count, and special
+                            parameters like color or block type.
+                        </p>
+                    </div>
+                    <Separator />
+                    <div>
+                        <strong className="text-foreground">
+                            4. Copy and use
+                        </strong>
+                        <p>
+                            Click Copy and paste the command in your
+                            Minecraft command block or chat.
+                        </p>
+                    </div>
+                </CardContent>
+            </Card>
+        </>
+    );
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Particle Generator" />
+            <ToolLayout
+                title="Minecraft Particle Command Generator"
+                description="Create custom particle effects with full control over position, spread, and appearance"
+                sidebar={sidebar}
+            >
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Select Particle</CardTitle>
+                        <CardDescription>
+                            Choose from {particles.length}+ particle
+                            types
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                                placeholder="Search particles..."
+                                value={searchQuery}
+                                onChange={(e) =>
+                                    setSearchQuery(e.target.value)
+                                }
+                                className="pl-9"
+                            />
+                        </div>
 
-            <div className="mx-auto max-w-screen-2xl p-4 sm:p-6">
-                <div className="mb-6 space-y-2">
-                    <h1 className="text-3xl font-bold tracking-tight">
-                        Minecraft Particle Command Generator
-                    </h1>
-                    <p className="text-base text-muted-foreground">
-                        Create custom particle effects with full control over
-                        position, spread, and appearance
-                    </p>
-                </div>
+                        <div className="flex flex-wrap gap-2">
+                            {particleCategories.map((category) => (
+                                <Button
+                                    key={category}
+                                    variant={
+                                        selectedCategory === category
+                                            ? 'default'
+                                            : 'outline'
+                                    }
+                                    size="sm"
+                                    onClick={() =>
+                                        setSelectedCategory(category)
+                                    }
+                                >
+                                    {category}
+                                </Button>
+                            ))}
+                        </div>
 
-                <div className="grid gap-6 lg:grid-cols-[1fr,400px]">
-                    <div className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Select Particle</CardTitle>
-                                <CardDescription>
-                                    Choose from {particles.length}+ particle
-                                    types
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                                    <Input
-                                        placeholder="Search particles..."
-                                        value={searchQuery}
-                                        onChange={(e) =>
-                                            setSearchQuery(e.target.value)
+                        <div className="max-h-64 space-y-1 overflow-y-auto rounded-lg border p-2">
+                            {filteredParticles.map((particle) => (
+                                <button
+                                    key={particle.id}
+                                    type="button"
+                                    onClick={() =>
+                                        setSelectedParticle(particle.id)
+                                    }
+                                    className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-muted"
+                                    style={{
+                                        backgroundColor:
+                                            selectedParticle ===
+                                            particle.id
+                                                ? 'hsl(var(--accent))'
+                                                : undefined,
+                                    }}
+                                >
+                                    <div>
+                                        <div className="font-medium">
+                                            {particle.name}
+                                        </div>
+                                        <div className="text-xs text-muted-foreground">
+                                            {particle.category}
+                                        </div>
+                                    </div>
+                                    {selectedParticle ===
+                                        particle.id && (
+                                        <Check className="size-4 text-primary" />
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Configuration</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className="space-y-4">
+                            <div>
+                                <Label>Coordinate Type</Label>
+                                <div className="mt-2 flex gap-2">
+                                    <Button
+                                        variant={
+                                            coordinateType === 'absolute'
+                                                ? 'default'
+                                                : 'outline'
                                         }
-                                        className="pl-9"
+                                        size="sm"
+                                        onClick={() =>
+                                            setCoordinateType('absolute')
+                                        }
+                                    >
+                                        Absolute
+                                    </Button>
+                                    <Button
+                                        variant={
+                                            coordinateType === 'relative'
+                                                ? 'default'
+                                                : 'outline'
+                                        }
+                                        size="sm"
+                                        onClick={() =>
+                                            setCoordinateType('relative')
+                                        }
+                                    >
+                                        Relative (~)
+                                    </Button>
+                                    <Button
+                                        variant={
+                                            coordinateType === 'local'
+                                                ? 'default'
+                                                : 'outline'
+                                        }
+                                        size="sm"
+                                        onClick={() =>
+                                            setCoordinateType('local')
+                                        }
+                                    >
+                                        Local (^)
+                                    </Button>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-4">
+                                <div>
+                                    <Label htmlFor="x">X Position</Label>
+                                    <Input
+                                        id="x"
+                                        type="number"
+                                        value={x}
+                                        onChange={(e) => setX(e.target.value)}
+                                        step="0.1"
                                     />
                                 </div>
-
-                                <div className="flex flex-wrap gap-2">
-                                    {particleCategories.map((category) => (
-                                        <Button
-                                            key={category}
-                                            variant={
-                                                selectedCategory === category
-                                                    ? 'default'
-                                                    : 'outline'
-                                            }
-                                            size="sm"
-                                            onClick={() =>
-                                                setSelectedCategory(category)
-                                            }
-                                        >
-                                            {category}
-                                        </Button>
-                                    ))}
+                                <div>
+                                    <Label htmlFor="y">Y Position</Label>
+                                    <Input
+                                        id="y"
+                                        type="number"
+                                        value={y}
+                                        onChange={(e) => setY(e.target.value)}
+                                        step="0.1"
+                                    />
                                 </div>
-
-                                <div className="max-h-64 space-y-1 overflow-y-auto rounded-lg border p-2">
-                                    {filteredParticles.map((particle) => (
-                                        <button
-                                            key={particle.id}
-                                            type="button"
-                                            onClick={() =>
-                                                setSelectedParticle(particle.id)
-                                            }
-                                            className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-muted"
-                                            style={{
-                                                backgroundColor:
-                                                    selectedParticle ===
-                                                    particle.id
-                                                        ? 'hsl(var(--accent))'
-                                                        : undefined,
-                                            }}
-                                        >
-                                            <div>
-                                                <div className="font-medium">
-                                                    {particle.name}
-                                                </div>
-                                                <div className="text-xs text-muted-foreground">
-                                                    {particle.category}
-                                                </div>
-                                            </div>
-                                            {selectedParticle ===
-                                                particle.id && (
-                                                <Check className="size-4 text-primary" />
-                                            )}
-                                        </button>
-                                    ))}
+                                <div>
+                                    <Label htmlFor="z">Z Position</Label>
+                                    <Input
+                                        id="z"
+                                        type="number"
+                                        value={z}
+                                        onChange={(e) => setZ(e.target.value)}
+                                        step="0.1"
+                                    />
                                 </div>
-                            </CardContent>
-                        </Card>
+                            </div>
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Configuration</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                <div className="space-y-4">
-                                    <div>
-                                        <Label>Coordinate Type</Label>
-                                        <div className="mt-2 flex gap-2">
-                                            <Button
-                                                variant={
-                                                    coordinateType === 'absolute'
-                                                        ? 'default'
-                                                        : 'outline'
-                                                }
-                                                size="sm"
-                                                onClick={() =>
-                                                    setCoordinateType('absolute')
-                                                }
-                                            >
-                                                Absolute
-                                            </Button>
-                                            <Button
-                                                variant={
-                                                    coordinateType === 'relative'
-                                                        ? 'default'
-                                                        : 'outline'
-                                                }
-                                                size="sm"
-                                                onClick={() =>
-                                                    setCoordinateType('relative')
-                                                }
-                                            >
-                                                Relative (~)
-                                            </Button>
-                                            <Button
-                                                variant={
-                                                    coordinateType === 'local'
-                                                        ? 'default'
-                                                        : 'outline'
-                                                }
-                                                size="sm"
-                                                onClick={() =>
-                                                    setCoordinateType('local')
-                                                }
-                                            >
-                                                Local (^)
-                                            </Button>
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-3 gap-4">
-                                        <div>
-                                            <Label htmlFor="x">X Position</Label>
-                                            <Input
-                                                id="x"
-                                                type="number"
-                                                value={x}
-                                                onChange={(e) => setX(e.target.value)}
-                                                step="0.1"
-                                            />
-                                        </div>
-                                        <div>
-                                            <Label htmlFor="y">Y Position</Label>
-                                            <Input
-                                                id="y"
-                                                type="number"
-                                                value={y}
-                                                onChange={(e) => setY(e.target.value)}
-                                                step="0.1"
-                                            />
-                                        </div>
-                                        <div>
-                                            <Label htmlFor="z">Z Position</Label>
-                                            <Input
-                                                id="z"
-                                                type="number"
-                                                value={z}
-                                                onChange={(e) => setZ(e.target.value)}
-                                                step="0.1"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-3 gap-4">
-                                        <div>
-                                            <Label htmlFor="dx">Delta X</Label>
-                                            <Input
-                                                id="dx"
-                                                type="number"
-                                                value={dx}
-                                                onChange={(e) => setDx(e.target.value)}
-                                                step="0.1"
-                                                min="0"
-                                            />
-                                        </div>
-                                        <div>
-                                            <Label htmlFor="dy">Delta Y</Label>
-                                            <Input
-                                                id="dy"
-                                                type="number"
-                                                value={dy}
-                                                onChange={(e) => setDy(e.target.value)}
-                                                step="0.1"
-                                                min="0"
-                                            />
-                                        </div>
-                                        <div>
-                                            <Label htmlFor="dz">Delta Z</Label>
-                                            <Input
-                                                id="dz"
-                                                type="number"
-                                                value={dz}
-                                                onChange={(e) => setDz(e.target.value)}
-                                                step="0.1"
-                                                min="0"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <Label htmlFor="speed">Speed</Label>
-                                            <Input
-                                                id="speed"
-                                                type="number"
-                                                value={speed}
-                                                onChange={(e) =>
-                                                    setSpeed(e.target.value)
-                                                }
-                                                step="0.1"
-                                                min="0"
-                                            />
-                                        </div>
-                                        <div>
-                                            <Label htmlFor="count">Count</Label>
-                                            <Input
-                                                id="count"
-                                                type="number"
-                                                value={count}
-                                                onChange={(e) =>
-                                                    setCount(e.target.value)
-                                                }
-                                                min="0"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-4">
-                                        <div className="flex-1">
-                                            <Label htmlFor="viewer">Viewer</Label>
-                                            <Select
-                                                value={viewer}
-                                                onValueChange={setViewer}
-                                            >
-                                                <SelectTrigger id="viewer">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="@a">
-                                                        All Players (@a)
-                                                    </SelectItem>
-                                                    <SelectItem value="@p">
-                                                        Nearest Player (@p)
-                                                    </SelectItem>
-                                                    <SelectItem value="@s">
-                                                        Self (@s)
-                                                    </SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-
-                                        <div className="flex items-center gap-2 pt-6">
-                                            <Label htmlFor="force-mode">
-                                                Force Mode
-                                            </Label>
-                                            <input
-                                                id="force-mode"
-                                                type="checkbox"
-                                                checked={forceMode}
-                                                onChange={(e) =>
-                                                    setForceMode(e.target.checked)
-                                                }
-                                                className="size-4 rounded border-input"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {renderSpecialParams()}
+                            <div className="grid grid-cols-3 gap-4">
+                                <div>
+                                    <Label htmlFor="dx">Delta X</Label>
+                                    <Input
+                                        id="dx"
+                                        type="number"
+                                        value={dx}
+                                        onChange={(e) => setDx(e.target.value)}
+                                        step="0.1"
+                                        min="0"
+                                    />
                                 </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    <div className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Command Output</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="overflow-x-auto rounded-lg border bg-muted/50 p-3">
-                                    <code className="block break-all font-mono text-xs">
-                                        {generateCommand()}
-                                    </code>
+                                <div>
+                                    <Label htmlFor="dy">Delta Y</Label>
+                                    <Input
+                                        id="dy"
+                                        type="number"
+                                        value={dy}
+                                        onChange={(e) => setDy(e.target.value)}
+                                        step="0.1"
+                                        min="0"
+                                    />
                                 </div>
+                                <div>
+                                    <Label htmlFor="dz">Delta Z</Label>
+                                    <Input
+                                        id="dz"
+                                        type="number"
+                                        value={dz}
+                                        onChange={(e) => setDz(e.target.value)}
+                                        step="0.1"
+                                        min="0"
+                                    />
+                                </div>
+                            </div>
 
-                                <div className="flex gap-2">
-                                    <Button
-                                        onClick={copyCommand}
-                                        className="flex-1"
-                                        disabled={copied}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <Label htmlFor="speed">Speed</Label>
+                                    <Input
+                                        id="speed"
+                                        type="number"
+                                        value={speed}
+                                        onChange={(e) =>
+                                            setSpeed(e.target.value)
+                                        }
+                                        step="0.1"
+                                        min="0"
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="count">Count</Label>
+                                    <Input
+                                        id="count"
+                                        type="number"
+                                        value={count}
+                                        onChange={(e) =>
+                                            setCount(e.target.value)
+                                        }
+                                        min="0"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-4">
+                                <div className="flex-1">
+                                    <Label htmlFor="viewer">Viewer</Label>
+                                    <Select
+                                        value={viewer}
+                                        onValueChange={setViewer}
                                     >
-                                        {copied ? (
-                                            <>
-                                                <Check className="mr-2 size-4" />
-                                                Copied!
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Copy className="mr-2 size-4" />
-                                                Copy
-                                            </>
-                                        )}
-                                    </Button>
-                                    <Button
-                                        onClick={reset}
-                                        variant="outline"
-                                        className="flex-1"
-                                    >
-                                        <RotateCcw className="mr-2 size-4" />
-                                        Reset
-                                    </Button>
+                                        <SelectTrigger id="viewer">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="@a">
+                                                All Players (@a)
+                                            </SelectItem>
+                                            <SelectItem value="@p">
+                                                Nearest Player (@p)
+                                            </SelectItem>
+                                            <SelectItem value="@s">
+                                                Self (@s)
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
-                            </CardContent>
-                        </Card>
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Presets</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-2">
-                                {presets.map((preset, index) => (
-                                    <button
-                                        key={index}
-                                        type="button"
-                                        onClick={() => loadPreset(preset)}
-                                        className="flex w-full flex-col gap-1 rounded-lg border p-3 text-left transition-colors hover:bg-muted"
-                                    >
-                                        <div className="font-medium">
-                                            {preset.name}
-                                        </div>
-                                        <div className="text-sm text-muted-foreground">
-                                            {preset.description}
-                                        </div>
-                                    </button>
-                                ))}
-                            </CardContent>
-                        </Card>
+                                <div className="flex items-center gap-2 pt-6">
+                                    <Label htmlFor="force-mode">
+                                        Force Mode
+                                    </Label>
+                                    <input
+                                        id="force-mode"
+                                        type="checkbox"
+                                        checked={forceMode}
+                                        onChange={(e) =>
+                                            setForceMode(e.target.checked)
+                                        }
+                                        className="size-4 rounded border-input"
+                                    />
+                                </div>
+                            </div>
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>How to Use</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-3 text-sm text-muted-foreground">
-                                <div>
-                                    <strong className="text-foreground">
-                                        1. Choose a particle
-                                    </strong>
-                                    <p>
-                                        Search or filter by category to find the
-                                        perfect particle effect.
-                                    </p>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <strong className="text-foreground">
-                                        2. Set position and spread
-                                    </strong>
-                                    <p>
-                                        Use coordinates for position and delta
-                                        values to control the spread area.
-                                    </p>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <strong className="text-foreground">
-                                        3. Adjust properties
-                                    </strong>
-                                    <p>
-                                        Configure speed, count, and special
-                                        parameters like color or block type.
-                                    </p>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <strong className="text-foreground">
-                                        4. Copy and use
-                                    </strong>
-                                    <p>
-                                        Click Copy and paste the command in your
-                                        Minecraft command block or chat.
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
-            </div>
+                            {renderSpecialParams()}
+                        </div>
+                    </CardContent>
+                </Card>
+            </ToolLayout>
         </AppLayout>
     );
 }

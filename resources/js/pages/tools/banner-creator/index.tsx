@@ -5,6 +5,7 @@ import {
     BannerLayer,
     BannerPreview,
 } from '@/components/tools/banner-preview';
+import { OutputPanel, ToolLayout } from '@/components/tool-layout';
 import { bannerPatterns } from '@/data/banner-patterns';
 import { minecraftColors } from '@/data/minecraft-colors';
 import AppLayout from '@/layouts/app-layout';
@@ -117,22 +118,109 @@ export default function BannerCreator() {
         [],
     );
 
+    const sidebar = (
+        <>
+            {/* Preview */}
+            <OutputPanel title="Banner Preview">
+                <div className="flex justify-center rounded-lg border bg-gradient-to-br from-slate-50 to-slate-100 p-8 dark:from-slate-900 dark:to-slate-800">
+                    <BannerPreview baseColor={baseColor} layers={layers} />
+                </div>
+            </OutputPanel>
+
+            {/* Command */}
+            <OutputPanel
+                title="Command"
+                actions={
+                    <div className="flex gap-2">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={copyCommand}
+                            disabled={copied}
+                        >
+                            {copied ? (
+                                <>
+                                    <Check className="mr-1 size-3" />
+                                    Copied
+                                </>
+                            ) : (
+                                <>
+                                    <Copy className="mr-1 size-3" />
+                                    Copy
+                                </>
+                            )}
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={reset}>
+                            <RotateCcw className="size-3" />
+                        </Button>
+                    </div>
+                }
+            >
+                <div className="overflow-x-auto rounded-lg border bg-muted/50 p-3">
+                    <code className="block break-all font-mono text-xs">
+                        {generateCommand()}
+                    </code>
+                </div>
+            </OutputPanel>
+
+            {/* How to Use */}
+            <Card>
+                <CardHeader className="pb-3">
+                    <CardTitle className="text-base">How to Use</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm text-muted-foreground">
+                    <div>
+                        <strong className="text-foreground">
+                            1. Choose a base color
+                        </strong>
+                        <p className="text-xs">
+                            This is the background color of your banner.
+                        </p>
+                    </div>
+                    <Separator />
+                    <div>
+                        <strong className="text-foreground">
+                            2. Add pattern layers
+                        </strong>
+                        <p className="text-xs">
+                            Select a pattern and color, then click "Add Layer".
+                            You can add up to 6 layers.
+                        </p>
+                    </div>
+                    <Separator />
+                    <div>
+                        <strong className="text-foreground">
+                            3. Reorder or remove layers
+                        </strong>
+                        <p className="text-xs">
+                            Use the arrows to change layer order, or the trash
+                            icon to remove a layer.
+                        </p>
+                    </div>
+                    <Separator />
+                    <div>
+                        <strong className="text-foreground">
+                            4. Copy the command
+                        </strong>
+                        <p className="text-xs">
+                            Click "Copy" and paste the command in your Minecraft
+                            chat to get your banner.
+                        </p>
+                    </div>
+                </CardContent>
+            </Card>
+        </>
+    );
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Banner Creator" />
-
-            <div className="mx-auto max-w-screen-2xl p-4 sm:p-6">
-                <div className="mb-6 space-y-2">
-                    <h1 className="text-3xl font-bold tracking-tight">
-                        Minecraft Banner Creator
-                    </h1>
-                    <p className="text-base text-muted-foreground">
-                        Design custom Minecraft banners with patterns and colors
-                    </p>
-                </div>
-
-                <div className="grid gap-6 lg:grid-cols-[1fr,400px]">
-                    <div className="space-y-6">
+            <ToolLayout
+                title="Minecraft Banner Creator"
+                description="Design custom Minecraft banners with patterns and colors"
+                sidebar={sidebar}
+            >
+                <div className="space-y-6">
                         <Card>
                             <CardHeader>
                                 <CardTitle>Base Color</CardTitle>
@@ -371,114 +459,8 @@ export default function BannerCreator() {
                                 </CardContent>
                             </Card>
                         )}
-                    </div>
-
-                    <div className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Preview</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="flex justify-center rounded-lg border bg-gradient-to-br from-slate-50 to-slate-100 p-8 dark:from-slate-900 dark:to-slate-800">
-                                    <BannerPreview
-                                        baseColor={baseColor}
-                                        layers={layers}
-                                    />
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Command</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="overflow-x-auto rounded-lg border bg-muted/50 p-3">
-                                    <code className="block break-all font-mono text-xs">
-                                        {generateCommand()}
-                                    </code>
-                                </div>
-
-                                <div className="flex gap-2">
-                                    <Button
-                                        onClick={copyCommand}
-                                        className="flex-1"
-                                        disabled={copied}
-                                    >
-                                        {copied ? (
-                                            <>
-                                                <Check className="mr-2 size-4" />
-                                                Copied!
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Copy className="mr-2 size-4" />
-                                                Copy
-                                            </>
-                                        )}
-                                    </Button>
-                                    <Button
-                                        onClick={reset}
-                                        variant="outline"
-                                        className="flex-1"
-                                    >
-                                        <RotateCcw className="mr-2 size-4" />
-                                        Reset
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>How to Use</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-3 text-sm text-muted-foreground">
-                                <div>
-                                    <strong className="text-foreground">
-                                        1. Choose a base color
-                                    </strong>
-                                    <p>
-                                        This is the background color of your
-                                        banner.
-                                    </p>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <strong className="text-foreground">
-                                        2. Add pattern layers
-                                    </strong>
-                                    <p>
-                                        Select a pattern and color, then click
-                                        "Add Layer". You can add up to 6
-                                        layers.
-                                    </p>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <strong className="text-foreground">
-                                        3. Reorder or remove layers
-                                    </strong>
-                                    <p>
-                                        Use the arrows to change layer order, or
-                                        the trash icon to remove a layer.
-                                    </p>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <strong className="text-foreground">
-                                        4. Copy the command
-                                    </strong>
-                                    <p>
-                                        Click "Copy" and paste the command in
-                                        your Minecraft chat to get your banner.
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
                 </div>
-            </div>
+            </ToolLayout>
         </AppLayout>
     );
 }

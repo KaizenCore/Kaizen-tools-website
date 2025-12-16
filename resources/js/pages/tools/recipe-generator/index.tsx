@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { OutputPanel, ToolLayout } from '@/components/tool-layout';
 import {
     minecraftItems,
     recipeCategories,
@@ -367,23 +368,161 @@ export default function RecipeGenerator() {
         return minecraftItems.find((item) => item.id === id);
     };
 
+    const sidebar = (
+        <>
+            <Card>
+                <CardHeader className="pb-3">
+                    <CardTitle className="text-base">Presets</CardTitle>
+                    <CardDescription>
+                        Load common recipe examples
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-2">
+                    <Button
+                        onClick={() => loadPreset('diamond_sword')}
+                        variant="outline"
+                        className="w-full justify-start"
+                    >
+                        <Sparkles className="mr-2 size-4" />
+                        Diamond Sword
+                    </Button>
+                    <Button
+                        onClick={() => loadPreset('iron_ingot')}
+                        variant="outline"
+                        className="w-full justify-start"
+                    >
+                        <Sparkles className="mr-2 size-4" />
+                        Iron Ingot (Smelting)
+                    </Button>
+                    <Button
+                        onClick={() => loadPreset('stone_stairs')}
+                        variant="outline"
+                        className="w-full justify-start"
+                    >
+                        <Sparkles className="mr-2 size-4" />
+                        Stone Stairs (Stonecutting)
+                    </Button>
+                    <Button
+                        onClick={() =>
+                            loadPreset('netherite_sword')
+                        }
+                        variant="outline"
+                        className="w-full justify-start"
+                    >
+                        <Sparkles className="mr-2 size-4" />
+                        Netherite Sword (Smithing)
+                    </Button>
+                </CardContent>
+            </Card>
+
+            <OutputPanel
+                title="JSON Output"
+                actions={
+                    <>
+                        <Button
+                            onClick={copyToClipboard}
+                            variant="ghost"
+                            size="sm"
+                            disabled={copied}
+                        >
+                            {copied ? (
+                                <>
+                                    <Check className="mr-1 size-3" />
+                                    Copied
+                                </>
+                            ) : (
+                                <>
+                                    <Copy className="mr-1 size-3" />
+                                    Copy
+                                </>
+                            )}
+                        </Button>
+                        <Button
+                            onClick={downloadRecipe}
+                            variant="ghost"
+                            size="sm"
+                        >
+                            <Download className="mr-1 size-3" />
+                            Download
+                        </Button>
+                    </>
+                }
+            >
+                <div className="overflow-x-auto rounded-lg border bg-muted/50 p-3">
+                    <pre className="text-xs">
+                        <code>{generateRecipe()}</code>
+                    </pre>
+                </div>
+
+                <Button
+                    onClick={reset}
+                    variant="outline"
+                    className="w-full"
+                >
+                    <RotateCcw className="mr-2 size-4" />
+                    Reset
+                </Button>
+            </OutputPanel>
+
+            <Card>
+                <CardHeader className="pb-3">
+                    <CardTitle className="text-base">How to Use</CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-3 text-sm">
+                    <div>
+                        <strong className="text-foreground">
+                            1. Choose recipe type
+                        </strong>
+                        <p className="text-muted-foreground">
+                            Select between shaped crafting,
+                            shapeless, cooking, stonecutting, or
+                            smithing.
+                        </p>
+                    </div>
+                    <Separator />
+                    <div>
+                        <strong className="text-foreground">
+                            2. Configure the recipe
+                        </strong>
+                        <p className="text-muted-foreground">
+                            Set up ingredients, patterns, and
+                            cooking parameters as needed.
+                        </p>
+                    </div>
+                    <Separator />
+                    <div>
+                        <strong className="text-foreground">
+                            3. Set result and settings
+                        </strong>
+                        <p className="text-muted-foreground">
+                            Define the output item, count, and file
+                            location for your datapack.
+                        </p>
+                    </div>
+                    <Separator />
+                    <div>
+                        <strong className="text-foreground">
+                            4. Download or copy
+                        </strong>
+                        <p className="text-muted-foreground">
+                            Save the JSON file to
+                            data/namespace/recipe/ in your
+                            datapack.
+                        </p>
+                    </div>
+                </CardContent>
+            </Card>
+        </>
+    );
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Recipe Generator" />
-
-            <div className="mx-auto max-w-screen-2xl p-4 sm:p-6">
-                <div className="mb-6 space-y-2">
-                    <h1 className="text-3xl font-bold tracking-tight">
-                        Minecraft Recipe Generator
-                    </h1>
-                    <p className="text-base text-muted-foreground">
-                        Generate custom datapack recipes for crafting, smelting,
-                        smithing, and more
-                    </p>
-                </div>
-
-                <div className="grid gap-6 lg:grid-cols-[1fr,400px]">
-                    <div className="space-y-6">
+            <ToolLayout
+                title="Minecraft Recipe Generator"
+                description="Generate custom datapack recipes for crafting, smelting, smithing, and more"
+                sidebar={sidebar}
+            >
                         <Card>
                             <CardHeader>
                                 <CardTitle>Recipe Type</CardTitle>
@@ -958,155 +1097,7 @@ export default function RecipeGenerator() {
                                 </div>
                             </CardContent>
                         </Card>
-                    </div>
-
-                    <div className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>JSON Output</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="overflow-x-auto rounded-lg border bg-muted/50 p-3">
-                                    <pre className="text-xs">
-                                        <code>{generateRecipe()}</code>
-                                    </pre>
-                                </div>
-
-                                <div className="flex gap-2">
-                                    <Button
-                                        onClick={copyToClipboard}
-                                        className="flex-1"
-                                        disabled={copied}
-                                    >
-                                        {copied ? (
-                                            <>
-                                                <Check className="mr-2 size-4" />
-                                                Copied!
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Copy className="mr-2 size-4" />
-                                                Copy
-                                            </>
-                                        )}
-                                    </Button>
-                                    <Button
-                                        onClick={downloadRecipe}
-                                        variant="outline"
-                                        className="flex-1"
-                                    >
-                                        <Download className="mr-2 size-4" />
-                                        Download
-                                    </Button>
-                                </div>
-
-                                <Button
-                                    onClick={reset}
-                                    variant="outline"
-                                    className="w-full"
-                                >
-                                    <RotateCcw className="mr-2 size-4" />
-                                    Reset
-                                </Button>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Presets</CardTitle>
-                                <CardDescription>
-                                    Load common recipe examples
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-2">
-                                <Button
-                                    onClick={() => loadPreset('diamond_sword')}
-                                    variant="outline"
-                                    className="w-full justify-start"
-                                >
-                                    <Sparkles className="mr-2 size-4" />
-                                    Diamond Sword
-                                </Button>
-                                <Button
-                                    onClick={() => loadPreset('iron_ingot')}
-                                    variant="outline"
-                                    className="w-full justify-start"
-                                >
-                                    <Sparkles className="mr-2 size-4" />
-                                    Iron Ingot (Smelting)
-                                </Button>
-                                <Button
-                                    onClick={() => loadPreset('stone_stairs')}
-                                    variant="outline"
-                                    className="w-full justify-start"
-                                >
-                                    <Sparkles className="mr-2 size-4" />
-                                    Stone Stairs (Stonecutting)
-                                </Button>
-                                <Button
-                                    onClick={() =>
-                                        loadPreset('netherite_sword')
-                                    }
-                                    variant="outline"
-                                    className="w-full justify-start"
-                                >
-                                    <Sparkles className="mr-2 size-4" />
-                                    Netherite Sword (Smithing)
-                                </Button>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>How to Use</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-3 text-sm text-muted-foreground">
-                                <div>
-                                    <strong className="text-foreground">
-                                        1. Choose recipe type
-                                    </strong>
-                                    <p>
-                                        Select between shaped crafting,
-                                        shapeless, cooking, stonecutting, or
-                                        smithing.
-                                    </p>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <strong className="text-foreground">
-                                        2. Configure the recipe
-                                    </strong>
-                                    <p>
-                                        Set up ingredients, patterns, and
-                                        cooking parameters as needed.
-                                    </p>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <strong className="text-foreground">
-                                        3. Set result and settings
-                                    </strong>
-                                    <p>
-                                        Define the output item, count, and file
-                                        location for your datapack.
-                                    </p>
-                                </div>
-                                <Separator />
-                                <div>
-                                    <strong className="text-foreground">
-                                        4. Download or copy
-                                    </strong>
-                                    <p>
-                                        Save the JSON file to
-                                        data/namespace/recipe/ in your
-                                        datapack.
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
-            </div>
+            </ToolLayout>
         </AppLayout>
     );
 }

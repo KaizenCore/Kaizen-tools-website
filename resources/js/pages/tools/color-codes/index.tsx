@@ -24,6 +24,7 @@ import {
     Underline,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { OutputPanel, ToolLayout } from '@/components/tool-layout';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -286,23 +287,177 @@ export default function ColorCodesIndex() {
     const jsonFormat = convertToJson(message);
     const miniMessageFormat = convertToMiniMessage(message);
 
+    const sidebar = message ? (
+        <>
+            <OutputPanel title="Live Preview">
+                <div className="rounded-lg bg-black/90 p-6">
+                    <div className="font-minecraft text-xl leading-relaxed">
+                        {parsedSegments.map((segment, index) => {
+                            const displayText = segment.obfuscated
+                                ? obfuscatedTexts.get(index) ||
+                                  segment.text
+                                : segment.text;
+
+                            return (
+                                <span
+                                    key={index}
+                                    style={{
+                                        color:
+                                            segment.color ||
+                                            '#FFFFFF',
+                                        fontWeight: segment.bold
+                                            ? 'bold'
+                                            : 'normal',
+                                        fontStyle: segment.italic
+                                            ? 'italic'
+                                            : 'normal',
+                                        textDecoration: [
+                                            segment.underline &&
+                                                'underline',
+                                            segment.strikethrough &&
+                                                'line-through',
+                                        ]
+                                            .filter(Boolean)
+                                            .join(' '),
+                                    }}
+                                >
+                                    {displayText}
+                                </span>
+                            );
+                        })}
+                    </div>
+                </div>
+            </OutputPanel>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-base">
+                        Output Formats
+                    </CardTitle>
+                    <CardDescription>
+                        Copy your formatted text in different formats
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">Section Symbol (§)</span>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                    copyToClipboard(message, 'section')
+                                }
+                            >
+                                {copiedFormat === 'section' ? (
+                                    <Check className="size-4 text-green-600" />
+                                ) : (
+                                    <Copy className="size-4" />
+                                )}
+                            </Button>
+                        </div>
+                        <div className="rounded-md bg-muted p-3">
+                            <code className="break-all font-mono text-xs">
+                                {message}
+                            </code>
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">Ampersand (&)</span>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                    copyToClipboard(
+                                        ampersandFormat,
+                                        'ampersand',
+                                    )
+                                }
+                            >
+                                {copiedFormat === 'ampersand' ? (
+                                    <Check className="size-4 text-green-600" />
+                                ) : (
+                                    <Copy className="size-4" />
+                                )}
+                            </Button>
+                        </div>
+                        <div className="rounded-md bg-muted p-3">
+                            <code className="break-all font-mono text-xs">
+                                {ampersandFormat}
+                            </code>
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">JSON Format</span>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                    copyToClipboard(jsonFormat, 'json')
+                                }
+                            >
+                                {copiedFormat === 'json' ? (
+                                    <Check className="size-4 text-green-600" />
+                                ) : (
+                                    <Copy className="size-4" />
+                                )}
+                            </Button>
+                        </div>
+                        <div className="max-h-48 overflow-auto rounded-md bg-muted p-3">
+                            <pre className="font-mono text-xs">
+                                {jsonFormat}
+                            </pre>
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">MiniMessage</span>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                    copyToClipboard(
+                                        miniMessageFormat,
+                                        'minimessage',
+                                    )
+                                }
+                            >
+                                {copiedFormat === 'minimessage' ? (
+                                    <Check className="size-4 text-green-600" />
+                                ) : (
+                                    <Copy className="size-4" />
+                                )}
+                            </Button>
+                        </div>
+                        <div className="rounded-md bg-muted p-3">
+                            <code className="break-all font-mono text-xs">
+                                {miniMessageFormat}
+                            </code>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+        </>
+    ) : null;
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Color Codes" />
-
-            <div className="mx-auto max-w-screen-2xl p-4 sm:p-6">
-                <div className="mb-6 space-y-2">
-                    <h1 className="text-3xl font-bold tracking-tight">
-                        Minecraft Color Code Generator
-                    </h1>
-                    <p className="text-base text-muted-foreground">
-                        Create formatted text with colors and styles for
-                        Minecraft chat, signs, and more
-                    </p>
-                </div>
-
-                {/* Input Section */}
-                <Card className="mb-6">
+            <ToolLayout
+                title="Minecraft Color Code Generator"
+                description="Create formatted text with colors and styles for Minecraft chat, signs, and more"
+                sidebar={sidebar}
+            >
+                <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Palette className="size-5" />
@@ -314,7 +469,6 @@ export default function ColorCodesIndex() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        {/* Text Input */}
                         <Textarea
                             ref={textareaRef}
                             value={message}
@@ -323,7 +477,6 @@ export default function ColorCodesIndex() {
                             className="min-h-32 font-mono text-base"
                         />
 
-                        {/* Color Palette */}
                         <div className="space-y-2">
                             <label className="text-sm font-medium">
                                 Colors
@@ -345,7 +498,6 @@ export default function ColorCodesIndex() {
                             </div>
                         </div>
 
-                        {/* Format Buttons */}
                         <div className="space-y-2">
                             <label className="text-sm font-medium">
                                 Formatting
@@ -408,7 +560,6 @@ export default function ColorCodesIndex() {
                             </div>
                         </div>
 
-                        {/* Reset Button */}
                         {message && (
                             <div className="flex justify-end">
                                 <Button
@@ -423,247 +574,7 @@ export default function ColorCodesIndex() {
                         )}
                     </CardContent>
                 </Card>
-
-                {/* Preview Section */}
-                {message && (
-                    <Card className="mb-6">
-                        <CardHeader>
-                            <CardTitle>Live Preview</CardTitle>
-                            <CardDescription>
-                                How your message will look in Minecraft
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="rounded-lg bg-black/90 p-6">
-                                <div className="font-minecraft text-xl leading-relaxed">
-                                    {parsedSegments.map((segment, index) => {
-                                        const displayText = segment.obfuscated
-                                            ? obfuscatedTexts.get(index) ||
-                                              segment.text
-                                            : segment.text;
-
-                                        return (
-                                            <span
-                                                key={index}
-                                                style={{
-                                                    color:
-                                                        segment.color ||
-                                                        '#FFFFFF',
-                                                    fontWeight: segment.bold
-                                                        ? 'bold'
-                                                        : 'normal',
-                                                    fontStyle: segment.italic
-                                                        ? 'italic'
-                                                        : 'normal',
-                                                    textDecoration: [
-                                                        segment.underline &&
-                                                            'underline',
-                                                        segment.strikethrough &&
-                                                            'line-through',
-                                                    ]
-                                                        .filter(Boolean)
-                                                        .join(' '),
-                                                }}
-                                            >
-                                                {displayText}
-                                            </span>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                )}
-
-                {/* Output Formats */}
-                {message && (
-                    <div className="grid gap-6 lg:grid-cols-2">
-                        {/* Section Symbol Format */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-base">
-                                    Section Symbol (§) Format
-                                </CardTitle>
-                                <CardDescription>
-                                    Standard Minecraft format
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                                <div className="rounded-md bg-muted p-4">
-                                    <code className="break-all font-mono text-sm">
-                                        {message}
-                                    </code>
-                                </div>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() =>
-                                        copyToClipboard(message, 'section')
-                                    }
-                                    className="w-full"
-                                >
-                                    {copiedFormat === 'section' ? (
-                                        <>
-                                            <Check className="size-4 text-green-600" />
-                                            Copied!
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Copy className="size-4" />
-                                            Copy
-                                        </>
-                                    )}
-                                </Button>
-                            </CardContent>
-                        </Card>
-
-                        {/* Ampersand Format */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-base">
-                                    Ampersand (&) Format
-                                </CardTitle>
-                                <CardDescription>
-                                    For plugins like Essentials
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                                <div className="rounded-md bg-muted p-4">
-                                    <code className="break-all font-mono text-sm">
-                                        {ampersandFormat}
-                                    </code>
-                                </div>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() =>
-                                        copyToClipboard(
-                                            ampersandFormat,
-                                            'ampersand',
-                                        )
-                                    }
-                                    className="w-full"
-                                >
-                                    {copiedFormat === 'ampersand' ? (
-                                        <>
-                                            <Check className="size-4 text-green-600" />
-                                            Copied!
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Copy className="size-4" />
-                                            Copy
-                                        </>
-                                    )}
-                                </Button>
-                            </CardContent>
-                        </Card>
-
-                        {/* JSON Format */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-base">
-                                    JSON Format
-                                </CardTitle>
-                                <CardDescription>
-                                    For tellraw and other commands
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                                <div className="max-h-64 overflow-auto rounded-md bg-muted p-4">
-                                    <pre className="font-mono text-xs">
-                                        {jsonFormat}
-                                    </pre>
-                                </div>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() =>
-                                        copyToClipboard(jsonFormat, 'json')
-                                    }
-                                    className="w-full"
-                                >
-                                    {copiedFormat === 'json' ? (
-                                        <>
-                                            <Check className="size-4 text-green-600" />
-                                            Copied!
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Copy className="size-4" />
-                                            Copy
-                                        </>
-                                    )}
-                                </Button>
-                            </CardContent>
-                        </Card>
-
-                        {/* MiniMessage Format */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-base">
-                                    MiniMessage Format
-                                </CardTitle>
-                                <CardDescription>
-                                    For Paper/Velocity servers
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                                <div className="rounded-md bg-muted p-4">
-                                    <code className="break-all font-mono text-sm">
-                                        {miniMessageFormat}
-                                    </code>
-                                </div>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() =>
-                                        copyToClipboard(
-                                            miniMessageFormat,
-                                            'minimessage',
-                                        )
-                                    }
-                                    className="w-full"
-                                >
-                                    {copiedFormat === 'minimessage' ? (
-                                        <>
-                                            <Check className="size-4 text-green-600" />
-                                            Copied!
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Copy className="size-4" />
-                                            Copy
-                                        </>
-                                    )}
-                                </Button>
-                            </CardContent>
-                        </Card>
-                    </div>
-                )}
-
-                {/* Empty State */}
-                {!message && (
-                    <div className="mt-16 flex flex-col items-center justify-center space-y-4 py-12">
-                        <div className="flex size-20 items-center justify-center rounded-full bg-muted/50">
-                            <Palette className="size-10 text-muted-foreground" />
-                        </div>
-                        <div className="space-y-2 text-center">
-                            <h3 className="text-xl font-semibold">
-                                Start creating your message
-                            </h3>
-                            <p className="max-w-md text-sm text-muted-foreground">
-                                Type a message above and use the color palette
-                                and formatting buttons to add style codes.
-                            </p>
-                        </div>
-                    </div>
-                )}
-            </div>
+            </ToolLayout>
         </AppLayout>
     );
 }
