@@ -44,7 +44,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Always force HTTPS (required for Dokploy/reverse proxy)
+        // Always force HTTPS for URL generation (required for Dokploy/reverse proxy)
         URL::forceScheme('https');
+
+        // Force the request to appear as secure for pagination and other URL generation
+        if (app()->environment('production') || config('app.force_https', false)) {
+            request()->server->set('HTTPS', 'on');
+        }
     }
 }
