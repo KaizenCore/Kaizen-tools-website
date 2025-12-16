@@ -9,6 +9,7 @@ use App\Jobs\SyncSingleMod;
 use App\Models\Mod;
 use App\Models\ModCategory;
 use App\Services\ModAggregator\CurseForgeClient;
+use App\Services\ModAggregator\LiveSearchScrollMetadata;
 use App\Services\ModAggregator\LiveSearchService;
 use App\Services\ModAggregator\ModMatcher;
 use App\Services\ModAggregator\ModNormalizer;
@@ -72,26 +73,17 @@ class ModController extends Controller
                 'page' => $page + 1,
             ]) : null;
 
+            // Build pagination metadata for scroll
+            $paginationInfo = [
+                'current_page' => $page,
+                'has_more' => $hasMorePages,
+            ];
+
             return Inertia::render('mods/index', [
-                'mods' => Inertia::scroll(fn () => [
-                    'data' => $mergedResults,
-                    'links' => [
-                        'first' => url('/mods').'?'.http_build_query([...$request->only(['search', 'category', 'loader', 'version', 'sort', 'order']), 'page' => 1]),
-                        'last' => null,
-                        'prev' => $page > 1 ? url('/mods').'?'.http_build_query([...$request->only(['search', 'category', 'loader', 'version', 'sort', 'order']), 'page' => $page - 1]) : null,
-                        'next' => $nextPageUrl,
-                    ],
-                    'meta' => [
-                        'current_page' => $page,
-                        'from' => $offset + 1,
-                        'last_page' => max($lastPage, $page + ($hasMorePages ? 1 : 0)),
-                        'per_page' => $perPage,
-                        'to' => $offset + count($mergedResults),
-                        'total' => $totalResults,
-                        'path' => url('/mods'),
-                        'links' => [],
-                    ],
-                ]),
+                'mods' => Inertia::scroll(
+                    fn () => ['data' => $mergedResults],
+                    metadata: fn () => new LiveSearchScrollMetadata($paginationInfo)
+                ),
                 'categories' => $categories,
                 'filters' => $request->only(['search', 'category', 'loader', 'version', 'sort', 'order']),
                 'isLiveSearch' => true,
