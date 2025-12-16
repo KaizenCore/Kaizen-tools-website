@@ -6,6 +6,7 @@ use App\Services\ModAggregator\CurseForgeClient;
 use App\Services\ModAggregator\ModrinthClient;
 use App\Services\SkinExplorer\MojangClient;
 use App\Services\SkinExplorer\SkinService;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -43,6 +44,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        if ($this->app->environment('production')) {
+            URL::forceScheme('https');
+        }
     }
 }
