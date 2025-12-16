@@ -18,17 +18,25 @@ class ServerStatusService
     public function checkStatus(string $address): array
     {
         try {
-            $response = Http::timeout(10)->get(self::API_URL.$address);
+            $response = Http::timeout(30)
+                ->connectTimeout(15)
+                ->retry(2, 1000)
+                ->get(self::API_URL.$address);
 
             if (! $response->successful()) {
-                return $this->getOfflineStatus($address);
+                Log::warning('Server status API returned non-success status', [
+                    'address' => $address,
+                    'status' => $response->status(),
+                ]);
+
+                return $this->getOfflineStatus($address, 'API returned status '.$response->status());
             }
 
             $data = $response->json();
 
             // Check if server is online
             if (! isset($data['online']) || ! $data['online']) {
-                return $this->getOfflineStatus($address);
+                return $this->getOfflineStatus($address, 'Server is offline or unreachable.');
             }
 
             return [
@@ -56,8 +64,8 @@ class ServerStatusService
                     'name' => $data['protocol']['name'] ?? null,
                 ],
             ];
-        } catch (\Exception $e) {
-            Log::error('Server status check failed', [
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            Log::error('Server status check connection failed', [
                 'address' => $address,
                 'error' => $e->getMessage(),
             ]);
@@ -66,7 +74,20 @@ class ServerStatusService
                 'success' => false,
                 'online' => false,
                 'address' => $address,
-                'error' => 'Failed to check server status. Please verify the address and try again.',
+                'error' => 'Connection timeout. The status check service may be temporarily unavailable.',
+            ];
+        } catch (\Exception $e) {
+            Log::error('Server status check failed', [
+                'address' => $address,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return [
+                'success' => false,
+                'online' => false,
+                'address' => $address,
+                'error' => 'Failed to check server status. Please try again in a moment.',
             ];
         }
     }
@@ -76,13 +97,13 @@ class ServerStatusService
      *
      * @return array<string, mixed>
      */
-    private function getOfflineStatus(string $address): array
+    private function getOfflineStatus(string $address, string $reason = 'Server is offline or unreachable.'): array
     {
         return [
             'success' => true,
             'online' => false,
             'address' => $address,
-            'error' => 'Server is offline or unreachable.',
+            'error' => $reason,
         ];
     }
 }
