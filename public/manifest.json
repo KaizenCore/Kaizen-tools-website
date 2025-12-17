@@ -1,0 +1,66 @@
+{
+    "id": "kaizen-tools-webapp",
+    "name": "Kaizen Tools - Minecraft Tool Suite",
+    "short_name": "Kaizen Tools",
+    "description": "Découvrez des mods, resource packs, et outils Minecraft. Vérifiez la réputation des joueurs et créez des bannières personnalisées.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0a0a0a",
+    "theme_color": "#3b82f6",
+    "orientation": "portrait-primary",
+    "scope": "/",
+    "lang": "fr",
+    "categories": ["games", "utilities", "entertainment"],
+    "icons": [
+        {
+            "src": "/icons/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icons/icon-384x384.png",
+            "sizes": "384x384",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icons/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icons/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ],
+    "screenshots": [],
+    "shortcuts": [
+        {
+            "name": "Mods",
+            "short_name": "Mods",
+            "description": "Parcourir les mods Minecraft",
+            "url": "/mods",
+            "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+        },
+        {
+            "name": "Resource Packs",
+            "short_name": "Packs",
+            "description": "Découvrir les resource packs",
+            "url": "/resource-packs",
+            "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+        },
+        {
+            "name": "Outils",
+            "short_name": "Outils",
+            "description": "Accéder aux outils Minecraft",
+            "url": "/tools",
+            "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+        }
+    ],
+    "related_applications": [],
+    "prefer_related_applications": false
+}

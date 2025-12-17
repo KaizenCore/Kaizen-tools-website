@@ -3,6 +3,32 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#3b82f6">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        <meta name="apple-mobile-web-app-title" content="{{ config('app.name', 'Kaizen Tools') }}">
+
+        {{-- Open Graph / Facebook --}}
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="{{ url()->current() }}">
+        <meta property="og:title" content="{{ config('app.name', 'Kaizen Tools') }} - Minecraft Tool Suite">
+        <meta property="og:description" content="Découvrez des mods, resource packs, et outils Minecraft. Vérifiez la réputation des joueurs et créez des bannières personnalisées.">
+        <meta property="og:image" content="{{ asset('og-image.png') }}">
+        <meta property="og:locale" content="fr_FR">
+
+        {{-- Twitter --}}
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:url" content="{{ url()->current() }}">
+        <meta name="twitter:title" content="{{ config('app.name', 'Kaizen Tools') }} - Minecraft Tool Suite">
+        <meta name="twitter:description" content="Découvrez des mods, resource packs, et outils Minecraft. Vérifiez la réputation des joueurs et créez des bannières personnalisées.">
+        <meta name="twitter:image" content="{{ asset('og-image.png') }}">
+
+        {{-- SEO --}}
+        <meta name="description" content="Découvrez des mods, resource packs, et outils Minecraft. Vérifiez la réputation des joueurs et créez des bannières personnalisées.">
+        <meta name="keywords" content="Minecraft, mods, resource packs, tools, outils, bannière, joueurs, réputation, Kaizen">
+        <meta name="author" content="Kaizen Tools">
+        <link rel="canonical" href="{{ url()->current() }}">
 
         {{-- Inline script to detect system dark mode preference and apply it immediately --}}
         <script>
@@ -31,6 +57,9 @@
         </style>
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
+
+        {{-- PWA Manifest --}}
+        <link rel="manifest" href="/manifest.json">
 
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">

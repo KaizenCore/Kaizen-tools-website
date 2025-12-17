@@ -4,6 +4,8 @@ import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+
+import { PwaInstallPrompt } from './components/pwa-install-prompt';
 import { initializeTheme } from './hooks/use-appearance';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Kaizen Tools';
@@ -21,6 +23,7 @@ createInertiaApp({
         root.render(
             <StrictMode>
                 <App {...props} />
+                <PwaInstallPrompt />
             </StrictMode>,
         );
     },
@@ -31,3 +34,12 @@ createInertiaApp({
 
 // This will set light / dark mode on load...
 initializeTheme();
+
+// Register service worker
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch((error) => {
+            console.error('Service Worker registration failed:', error);
+        });
+    });
+}
