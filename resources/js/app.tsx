@@ -4,6 +4,7 @@ import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { Toaster } from 'sonner';
 
 import { PwaInstallPrompt } from './components/pwa-install-prompt';
 import { initializeTheme } from './hooks/use-appearance';
@@ -23,6 +24,7 @@ createInertiaApp({
         root.render(
             <StrictMode>
                 <App {...props} />
+                <Toaster position="bottom-right" richColors />
                 <PwaInstallPrompt />
             </StrictMode>,
         );

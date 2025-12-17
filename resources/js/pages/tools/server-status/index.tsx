@@ -3,13 +3,12 @@ import { Button } from '@/components/ui/button';
 import {
     Card,
     CardContent,
-    CardDescription,
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { OutputPanel, ToolLayout } from '@/components/tool-layout';
+import { ToolLayout } from '@/components/tool-layout';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import type {
@@ -29,6 +28,7 @@ import {
     XCircle,
 } from 'lucide-react';
 import { useEffect, useState, type FormEvent } from 'react';
+import { toast } from 'sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -43,6 +43,34 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const RECENT_SEARCHES_KEY = 'minecraft_recent_server_searches';
 const MAX_RECENT_SEARCHES = 5;
+
+// Play notification sound
+function playNotificationSound(isOnline: boolean) {
+    const audioContext = new (window.AudioContext || (window as typeof window & { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    if (isOnline) {
+        // Success sound: ascending two-tone
+        oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+        oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1); // E5
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+    } else {
+        // Error sound: descending tone
+        oscillator.frequency.setValueAtTime(349.23, audioContext.currentTime); // F4
+        oscillator.frequency.setValueAtTime(261.63, audioContext.currentTime + 0.15); // C4
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+    }
+}
 
 export default function ServerStatusIndex() {
     const [address, setAddress] = useState('');
@@ -115,14 +143,32 @@ export default function ServerStatusIndex() {
 
             setStatus(response.data);
             saveToRecentSearches(address.trim(), response.data.online);
+
+            // Show toast and play sound
+            if (response.data.online) {
+                playNotificationSound(true);
+                toast.success('Server Online', {
+                    description: `${address.trim()} is online with ${response.data.players?.online ?? 0} players`,
+                });
+            } else {
+                playNotificationSound(false);
+                toast.error('Server Offline', {
+                    description: response.data.error || `${address.trim()} is not responding`,
+                });
+            }
         } catch (err) {
+            playNotificationSound(false);
             if (axios.isAxiosError(err) && err.response) {
-                setError(
-                    err.response.data.error ||
-                        'Failed to check server status.',
-                );
+                const errorMessage = err.response.data.error || 'Failed to check server status.';
+                setError(errorMessage);
+                toast.error('Check Failed', {
+                    description: errorMessage,
+                });
             } else {
                 setError('An unexpected error occurred.');
+                toast.error('Error', {
+                    description: 'An unexpected error occurred.',
+                });
             }
         } finally {
             setIsChecking(false);
@@ -140,138 +186,134 @@ export default function ServerStatusIndex() {
     };
 
     const sidebar = (
+        <Card>
+            <CardHeader className="pb-3">
+                <CardTitle className="text-base">About Server Status</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3 text-sm">
+                <div className="flex gap-2">
+                    <AlertCircle className="size-4 shrink-0 text-primary" />
+                    <p className="text-muted-foreground">
+                        <strong className="text-foreground">Query port:</strong> Uses default port 25565 if not specified
+                    </p>
+                </div>
+                <div className="flex gap-2">
+                    <AlertCircle className="size-4 shrink-0 text-primary" />
+                    <p className="text-muted-foreground">
+                        <strong className="text-foreground">Real-time:</strong> Shows current server status and player count
+                    </p>
+                </div>
+                <div className="flex gap-2">
+                    <AlertCircle className="size-4 shrink-0 text-primary" />
+                    <p className="text-muted-foreground">
+                        <strong className="text-foreground">Format:</strong> Enter as domain.com or domain.com:port
+                    </p>
+                </div>
+            </CardContent>
+        </Card>
+    );
+
+    const serverResult = (
         <>
+            {/* Online Server Result */}
             {!isChecking && status && status.online && (
-                <OutputPanel title="Server Details">
-                    {/* Server Icon and Status */}
-                    <div className="flex items-center gap-3">
-                        {status.icon && (
-                            <img
-                                src={status.icon}
-                                alt="Server icon"
-                                className="size-12 rounded-lg border bg-muted"
-                            />
-                        )}
-                        <div className="flex-1">
-                            <h3 className="font-semibold">
-                                {status.hostname || status.address}
-                            </h3>
-                            <Badge variant="default" className="gap-1 text-xs">
-                                <CheckCircle className="size-3" />
-                                Online
-                            </Badge>
+                <Card className="border-primary/20 bg-primary/5">
+                    <CardContent className="p-6">
+                        <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+                            {/* Server Info */}
+                            <div className="flex items-center gap-4">
+                                {status.icon && (
+                                    <img
+                                        src={status.icon}
+                                        alt="Server icon"
+                                        className="size-16 rounded-lg border bg-muted"
+                                    />
+                                )}
+                                <div>
+                                    <h3 className="text-xl font-semibold">
+                                        {status.hostname || status.address}
+                                    </h3>
+                                    <Badge variant="default" className="mt-1 gap-1">
+                                        <CheckCircle className="size-3" />
+                                        Online
+                                    </Badge>
+                                </div>
+                            </div>
+
+                            {/* Stats Grid */}
+                            <div className="grid flex-1 gap-3 sm:grid-cols-3">
+                                <div className="flex items-center gap-3 rounded-lg border bg-card p-3">
+                                    <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                                        <Users className="size-5 text-primary" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-muted-foreground">Players</p>
+                                        <p className="text-lg font-bold">
+                                            {status.players?.online ?? 0} / {status.players?.max ?? 0}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {status.version && (
+                                    <div className="flex items-center gap-3 rounded-lg border bg-card p-3">
+                                        <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                                            <Server className="size-5 text-primary" />
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-xs text-muted-foreground">Version</p>
+                                            <p className="truncate font-semibold">{status.version}</p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {status.software && (
+                                    <div className="flex items-center gap-3 rounded-lg border bg-card p-3">
+                                        <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                                            <Activity className="size-5 text-primary" />
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-xs text-muted-foreground">Software</p>
+                                            <p className="truncate font-semibold">{status.software}</p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    </div>
 
-                    {/* Server Stats */}
-                    <div className="grid gap-3">
-                        <div className="flex items-center gap-3 rounded-lg border bg-card p-3">
-                            <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                                <Users className="size-4 text-primary" />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                                <p className="text-xs font-medium text-muted-foreground">
-                                    Players
-                                </p>
-                                <p className="text-lg font-semibold">
-                                    {status.players?.online ?? 0} /{' '}
-                                    {status.players?.max ?? 0}
-                                </p>
-                            </div>
-                        </div>
-
-                        {status.version && (
-                            <div className="flex items-center gap-3 rounded-lg border bg-card p-3">
-                                <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                                    <Server className="size-4 text-primary" />
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                    <p className="text-xs font-medium text-muted-foreground">
-                                        Version
-                                    </p>
-                                    <p className="truncate text-sm font-semibold">
-                                        {status.version}
-                                    </p>
-                                </div>
+                        {/* MOTD */}
+                        {status.motd && status.motd.html && (
+                            <div className="mt-4 space-y-2">
+                                <h4 className="text-sm font-medium text-muted-foreground">
+                                    Message of the Day
+                                </h4>
+                                <div
+                                    className="rounded-lg border bg-card p-4 font-mono text-sm leading-relaxed"
+                                    dangerouslySetInnerHTML={{
+                                        __html: parseMotdColors(status.motd.html),
+                                    }}
+                                />
                             </div>
                         )}
-
-                        {status.software && (
-                            <div className="flex items-center gap-3 rounded-lg border bg-card p-3">
-                                <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                                    <Activity className="size-4 text-primary" />
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                    <p className="text-xs font-medium text-muted-foreground">
-                                        Software
-                                    </p>
-                                    <p className="truncate text-sm font-semibold">
-                                        {status.software}
-                                    </p>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* MOTD */}
-                    {status.motd && status.motd.html && (
-                        <div className="space-y-2">
-                            <h4 className="text-xs font-medium text-muted-foreground">
-                                Message of the Day
-                            </h4>
-                            <div
-                                className="rounded-lg border bg-muted/50 p-3 font-mono text-xs leading-relaxed"
-                                dangerouslySetInnerHTML={{
-                                    __html: parseMotdColors(status.motd.html),
-                                }}
-                            />
-                        </div>
-                    )}
-                </OutputPanel>
+                    </CardContent>
+                </Card>
             )}
 
-            {!isChecking && status && !status.online && status.error && (
-                <OutputPanel title="Server Status">
-                    <div className="flex items-start gap-3 rounded-lg border border-destructive/20 bg-destructive/5 p-3 dark:bg-destructive/10">
-                        <XCircle className="size-5 shrink-0 text-destructive" />
-                        <div className="flex-1">
-                            <p className="font-semibold text-destructive">
-                                Server Offline
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                                {status.error}
+            {/* Offline Server Result */}
+            {!isChecking && status && !status.online && (
+                <Card className="border-destructive/20 bg-destructive/5">
+                    <CardContent className="flex items-center gap-4 p-6">
+                        <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-destructive/10">
+                            <XCircle className="size-7 text-destructive" />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-semibold text-destructive">Server Offline</h3>
+                            <p className="text-muted-foreground">
+                                {status.error || 'The server is not responding'}
                             </p>
                         </div>
-                    </div>
-                </OutputPanel>
+                    </CardContent>
+                </Card>
             )}
-
-            {/* Info Card */}
-            <Card>
-                <CardHeader className="pb-3">
-                    <CardTitle className="text-base">About Server Status</CardTitle>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-3 text-sm">
-                    <div className="flex gap-2">
-                        <AlertCircle className="size-4 shrink-0 text-primary" />
-                        <p className="text-muted-foreground">
-                            <strong className="text-foreground">Query port:</strong> Uses default port 25565 if not specified
-                        </p>
-                    </div>
-                    <div className="flex gap-2">
-                        <AlertCircle className="size-4 shrink-0 text-primary" />
-                        <p className="text-muted-foreground">
-                            <strong className="text-foreground">Real-time:</strong> Shows current server status and player count
-                        </p>
-                    </div>
-                    <div className="flex gap-2">
-                        <AlertCircle className="size-4 shrink-0 text-primary" />
-                        <p className="text-muted-foreground">
-                            <strong className="text-foreground">Format:</strong> Enter as domain.com or domain.com:port
-                        </p>
-                    </div>
-                </CardContent>
-            </Card>
         </>
     );
 
@@ -329,16 +371,27 @@ export default function ServerStatusIndex() {
                 {/* Loading State */}
                 {isChecking && (
                     <Card>
-                        <CardHeader>
-                            <Skeleton className="h-6 w-48" />
-                            <Skeleton className="h-4 w-64" />
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <Skeleton className="h-20 w-full" />
-                            <Skeleton className="h-16 w-full" />
+                        <CardContent className="p-6">
+                            <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+                                <div className="flex items-center gap-4">
+                                    <Skeleton className="size-16 rounded-lg" />
+                                    <div className="space-y-2">
+                                        <Skeleton className="h-6 w-48" />
+                                        <Skeleton className="h-5 w-20" />
+                                    </div>
+                                </div>
+                                <div className="grid flex-1 gap-3 sm:grid-cols-3">
+                                    <Skeleton className="h-20 rounded-lg" />
+                                    <Skeleton className="h-20 rounded-lg" />
+                                    <Skeleton className="h-20 rounded-lg" />
+                                </div>
+                            </div>
                         </CardContent>
                     </Card>
                 )}
+
+                {/* Server Result */}
+                {serverResult}
 
                 {/* Recent Searches */}
                 {recentSearches.length > 0 && (
