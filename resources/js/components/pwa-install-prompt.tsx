@@ -108,36 +108,36 @@ export function PwaInstallPrompt() {
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-3">
                         <img src="/icons/icon-192x192.png" alt="Kaizen Tools" className="size-12 rounded-xl" />
-                        <span>Installer Kaizen Tools</span>
+                        <span>Install Kaizen Tools</span>
                     </DialogTitle>
                     <DialogDescription>
-                        Installez Kaizen Tools sur votre appareil pour un accès rapide et une meilleure expérience.
+                        Install Kaizen Tools on your device for quick access and a better experience.
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4">
                     {platform === 'ios' ? (
                         <div className="bg-muted rounded-lg p-4 space-y-3">
-                            <p className="text-sm font-medium">Pour installer sur iOS :</p>
+                            <p className="text-sm font-medium">To install on iOS:</p>
                             <ol className="text-muted-foreground space-y-2 text-sm">
                                 <li className="flex items-center gap-2">
                                     <span className="bg-primary text-primary-foreground flex size-5 items-center justify-center rounded-full text-xs">
                                         1
                                     </span>
-                                    Appuyez sur le bouton{' '}
-                                    <Share className="text-primary inline size-4" /> Partager
+                                    Tap the{' '}
+                                    <Share className="text-primary inline size-4" /> Share button
                                 </li>
                                 <li className="flex items-center gap-2">
                                     <span className="bg-primary text-primary-foreground flex size-5 items-center justify-center rounded-full text-xs">
                                         2
                                     </span>
-                                    Sélectionnez &quot;Sur l&apos;écran d&apos;accueil&quot;
+                                    Select &quot;Add to Home Screen&quot;
                                 </li>
                                 <li className="flex items-center gap-2">
                                     <span className="bg-primary text-primary-foreground flex size-5 items-center justify-center rounded-full text-xs">
                                         3
                                     </span>
-                                    Appuyez sur &quot;Ajouter&quot;
+                                    Tap &quot;Add&quot;
                                 </li>
                             </ol>
                         </div>
@@ -146,15 +146,15 @@ export function PwaInstallPrompt() {
                             <ul className="text-muted-foreground space-y-2 text-sm">
                                 <li className="flex items-center gap-2">
                                     <Download className="text-primary size-4" />
-                                    Accès hors-ligne aux fonctionnalités de base
+                                    Offline access to basic features
                                 </li>
                                 <li className="flex items-center gap-2">
                                     <Download className="text-primary size-4" />
-                                    Lancement rapide depuis l&apos;écran d&apos;accueil
+                                    Quick launch from home screen
                                 </li>
                                 <li className="flex items-center gap-2">
                                     <Download className="text-primary size-4" />
-                                    Expérience plein écran
+                                    Full screen experience
                                 </li>
                             </ul>
                         </div>
@@ -164,12 +164,12 @@ export function PwaInstallPrompt() {
                 <DialogFooter className="flex-col gap-2 sm:flex-row">
                     <Button variant="outline" onClick={handleDismiss} className="w-full sm:w-auto">
                         <X className="size-4" />
-                        Plus tard
+                        Later
                     </Button>
                     {platform !== 'ios' && deferredPrompt && (
                         <Button onClick={handleInstall} className="w-full sm:w-auto">
                             <Download className="size-4" />
-                            Installer
+                            Install
                         </Button>
                     )}
                 </DialogFooter>

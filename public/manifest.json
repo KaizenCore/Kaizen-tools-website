@@ -2,14 +2,14 @@
     "id": "kaizen-tools-webapp",
     "name": "Kaizen Tools - Minecraft Tool Suite",
     "short_name": "Kaizen Tools",
-    "description": "Découvrez des mods, resource packs, et outils Minecraft. Vérifiez la réputation des joueurs et créez des bannières personnalisées.",
+    "description": "Discover mods, resource packs, and Minecraft tools. Check player reputation and create custom banners.",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#0a0a0a",
     "theme_color": "#3b82f6",
     "orientation": "portrait-primary",
     "scope": "/",
-    "lang": "fr",
+    "lang": "en",
     "categories": ["games", "utilities", "entertainment"],
     "icons": [
         {
@@ -42,21 +42,21 @@
         {
             "name": "Mods",
             "short_name": "Mods",
-            "description": "Parcourir les mods Minecraft",
+            "description": "Browse Minecraft mods",
             "url": "/mods",
             "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
         },
         {
             "name": "Resource Packs",
             "short_name": "Packs",
-            "description": "Découvrir les resource packs",
+            "description": "Discover resource packs",
             "url": "/resource-packs",
             "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
         },
         {
-            "name": "Outils",
-            "short_name": "Outils",
-            "description": "Accéder aux outils Minecraft",
+            "name": "Tools",
+            "short_name": "Tools",
+            "description": "Access Minecraft tools",
             "url": "/tools",
             "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
         }

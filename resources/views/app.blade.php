@@ -13,20 +13,20 @@
         <meta property="og:type" content="website">
         <meta property="og:url" content="{{ url()->current() }}">
         <meta property="og:title" content="{{ config('app.name', 'Kaizen Tools') }} - Minecraft Tool Suite">
-        <meta property="og:description" content="Découvrez des mods, resource packs, et outils Minecraft. Vérifiez la réputation des joueurs et créez des bannières personnalisées.">
+        <meta property="og:description" content="Discover mods, resource packs, and Minecraft tools. Check player reputation and create custom banners.">
         <meta property="og:image" content="{{ asset('og-image.png') }}">
-        <meta property="og:locale" content="fr_FR">
+        <meta property="og:locale" content="en_US">
 
         {{-- Twitter --}}
         <meta name="twitter:card" content="summary_large_image">
         <meta name="twitter:url" content="{{ url()->current() }}">
         <meta name="twitter:title" content="{{ config('app.name', 'Kaizen Tools') }} - Minecraft Tool Suite">
-        <meta name="twitter:description" content="Découvrez des mods, resource packs, et outils Minecraft. Vérifiez la réputation des joueurs et créez des bannières personnalisées.">
+        <meta name="twitter:description" content="Discover mods, resource packs, and Minecraft tools. Check player reputation and create custom banners.">
         <meta name="twitter:image" content="{{ asset('og-image.png') }}">
 
         {{-- SEO --}}
-        <meta name="description" content="Découvrez des mods, resource packs, et outils Minecraft. Vérifiez la réputation des joueurs et créez des bannières personnalisées.">
-        <meta name="keywords" content="Minecraft, mods, resource packs, tools, outils, bannière, joueurs, réputation, Kaizen">
+        <meta name="description" content="Discover mods, resource packs, and Minecraft tools. Check player reputation and create custom banners.">
+        <meta name="keywords" content="Minecraft, mods, resource packs, tools, banner, players, reputation, Kaizen">
         <meta name="author" content="Kaizen Tools">
         <link rel="canonical" href="{{ url()->current() }}">
 
